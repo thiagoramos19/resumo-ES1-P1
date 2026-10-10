@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aula 4 · Estilos arquiteturais, parte b (Cap. 10)</title>
+<style>
+:root{
+  --bg:#0A0F1E; --panel:#151D3A; --panel2:#121932; --line:#27325C;
+  --text:#E9EDFB; --mut:#9AA7CC; --acc:#8AA4FF; --amb:#FFCB5C; --cor:#FF8A68; --mint:#5BE3A8;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; display:flex; flex-direction:column; overflow:hidden; color:var(--text);
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  background:
+    radial-gradient(1100px 560px at 15% -10%, #1c2b6b 0, transparent 60%),
+    radial-gradient(900px 520px at 105% 110%, #3b1e5f 0, transparent 55%),
+    var(--bg);
+}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 28px}
+.brand{font-weight:800;letter-spacing:.02em;font-size:15px;color:var(--mut)}
+.brand b{color:var(--text)}
+.counter{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+#voiceNote{margin:0 28px;padding:8px 14px;border-radius:12px;font-size:14px;line-height:1.4;border:1px solid var(--line);background:rgba(21,29,58,.7);color:var(--mut)}
+#voiceNote.ok{border-color:rgba(91,227,168,.5);color:#bff5dc}
+#voiceNote.warn{border-color:rgba(255,203,92,.6);color:#ffe3a1;background:rgba(255,203,92,.08)}
+#stage{flex:1;position:relative;min-height:0}
+.slide{
+  position:absolute;inset:0;padding:6px 28px;overflow:auto;opacity:0;visibility:hidden;
+  transform:translateX(44px) scale(.985);
+  transition:opacity .55s ease,transform .55s ease,visibility 0s .55s;
+}
+.slide.past{transform:translateX(-44px) scale(.985)}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .55s ease .1s,transform .55s ease .1s,visibility 0s}
+.wrap{max-width:1280px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.head{display:flex;flex-direction:column;gap:8px}
+.chip{align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);background:rgba(138,164,255,.12);border:1px solid rgba(138,164,255,.35);padding:5px 12px;border-radius:999px}
+h2{margin:0;font-size:clamp(28px,3.8vw,46px);line-height:1.1;font-weight:800;letter-spacing:-.01em;transition:text-shadow .5s}
+h2.active{text-shadow:0 0 28px rgba(138,164,255,.55)}
+.grid{display:grid;grid-template-columns:1fr 1.1fr;gap:16px}
+.col{display:flex;flex-direction:column;gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:18px;padding:18px 22px;
+  transition:opacity .5s ease,box-shadow .5s ease,border-color .5s ease;
+}
+.card h4{margin:0 0 9px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--acc)}
+.card p{margin:0;font-size:clamp(16px,1.45vw,20px);line-height:1.5}
+.card.conceito h4{color:var(--mint)}
+.card.pontos h4{color:var(--cor)}
+.card.alerta{background:linear-gradient(180deg,rgba(255,203,92,.14),rgba(255,203,92,.05));border-color:rgba(255,203,92,.4)}
+.card.alerta h4{color:var(--amb)}
+.card.gatilho{background:linear-gradient(135deg,#2a3a86,#1c2457);border-color:#3d4fa8}
+.card.gatilho h4{color:#c9d5ff}
+.card.gatilho p{font-weight:800;font-size:clamp(18px,1.7vw,24px)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+li{padding:8px 12px;border-radius:10px;border-left:3px solid transparent;font-size:clamp(16px,1.4vw,19px);line-height:1.45;transition:opacity .5s ease,background .5s ease,border-color .5s ease,box-shadow .5s ease}
+li b{color:#fff}
+/* destaque conforme a leitura */
+body:not(.showall) [data-k].unread{opacity:.3}
+body:not(.showall) [data-k].read{opacity:.75}
+[data-k].active{opacity:1}
+.card[data-k].active{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 0 38px rgba(138,164,255,.38)}
+.card.alerta[data-k].active{border-color:var(--amb);box-shadow:0 0 0 1px var(--amb),0 0 38px rgba(255,203,92,.35)}
+li[data-k].active{background:rgba(255,138,104,.13);border-left-color:var(--cor);box-shadow:0 0 24px rgba(255,138,104,.2)}
+/* animação de entrada */
+.slide.enter .anim{animation:rise .75s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--n,0)*90ms)}
+@keyframes rise{from{transform:translateY(24px)}to{transform:none}}
+/* intro e gabarito */
+.hero h1{margin:0;font-size:clamp(34px,5.2vw,68px);line-height:1.05;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,#fff,#9db3ff 60%,#c6a2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{margin:0;color:var(--mut);font-size:clamp(16px,1.6vw,22px)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.trio{grid-template-columns:1fr}}
+.trio .card .n{font-size:40px;font-weight:800;color:var(--acc);line-height:1}
+.trio .card p b{color:#fff}
+.how{display:flex;flex-wrap:wrap;gap:10px;font-size:clamp(15px,1.3vw,18px)}
+.how span{background:rgba(255,255,255,.06);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+.bigplay{align-self:flex-start;border:0;cursor:pointer;font-weight:800;font-size:18px;padding:14px 26px;border-radius:999px;color:#0A0F1E;background:linear-gradient(90deg,#8AA4FF,#b7a2ff);box-shadow:0 8px 30px rgba(138,164,255,.4)}
+.bigplay:hover{filter:brightness(1.08)}
+.gab{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.gab{grid-template-columns:1fr}}
+.gab .card{padding:14px 18px}
+.gab .q{font-size:12px;letter-spacing:.14em;font-weight:800;text-transform:uppercase;color:var(--amb)}
+.gab .r{font-size:clamp(18px,1.7vw,24px);font-weight:800;margin:2px 0 4px}
+.gab .d{font-size:clamp(14px,1.2vw,17px);color:var(--mut);line-height:1.4}
+.foot{font-size:14px;color:var(--mut)}
+/* legenda */
+#caption{padding:6px 28px 4px}
+#capText{max-width:1120px;margin:0 auto;min-height:64px;text-align:center;font-size:clamp(17px,1.7vw,23px);line-height:1.45;font-weight:600;
+  padding:11px 18px;border-radius:14px;background:rgba(8,12,28,.78);border:1px solid var(--line);backdrop-filter:blur(6px)}
+#capText .w{color:#b4bee0;transition:color .15s}
+#capText .w.on{color:#fff}
+/* controles */
+footer.controls{padding:8px 28px 14px;display:flex;flex-direction:column;gap:10px}
+.barrow{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums}
+#bar{flex:1;height:12px;border-radius:999px;background:#1b2447;position:relative;cursor:pointer;border:1px solid var(--line)}
+#fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:linear-gradient(90deg,#8AA4FF,#b7a2ff)}
+#ticks i{position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.18)}
+#knob{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;box-shadow:0 0 14px rgba(138,164,255,.8);left:0}
+.btnrow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.b{cursor:pointer;border:1px solid var(--line);background:#18214a;color:var(--text);font-weight:700;font-size:15px;padding:9px 16px;border-radius:12px;transition:background .2s,transform .1s}
+button.b:hover{background:#222d63}
+button.b:active{transform:scale(.97)}
+button.play{background:linear-gradient(90deg,#8AA4FF,#b7a2ff);color:#0A0F1E;border:0;min-width:116px}
+button.play:hover{filter:brightness(1.08);background:linear-gradient(90deg,#8AA4FF,#b7a2ff)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:#18214a;color:var(--mut);padding:9px 13px;font-weight:700;font-size:14px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on{background:#2c3a85;color:#fff}
+select{background:#18214a;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:9px 10px;font-size:14px;max-width:240px}
+label.chk{font-size:14px;color:var(--mut);display:flex;gap:6px;align-items:center;cursor:pointer}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{font-size:12px;font-weight:800;letter-spacing:.12em;padding:5px 12px;border-radius:999px}
+.pill.cai{background:rgba(255,138,104,.18);border:1px solid rgba(255,138,104,.6);color:#ffc2b0}
+.pill.nao{background:rgba(255,255,255,.07);border:1px solid #4a5388;color:#b9c3e6}
+.card.alerta.nao{background:rgba(255,255,255,.04);border-color:#4a5388}
+.card.alerta.nao h4{color:#aab4d8}
+.card.alerta.nao[data-k].active{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 0 34px rgba(138,164,255,.3)}
+.card.enun h4{color:var(--acc)}
+.card.enun p{font-size:clamp(15px,1.3vw,18px);color:#d4dbf3}
+.card.resp{background:linear-gradient(135deg,rgba(91,227,168,.18),rgba(91,227,168,.05));border-color:rgba(91,227,168,.5)}
+.card.resp h4{color:var(--mint)}
+.card.resp .big{font-size:clamp(20px,2.1vw,30px);font-weight:800;color:#c8f7e1}
+.card.resp[data-k].active{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint),0 0 38px rgba(91,227,168,.35)}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:1000px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{padding:14px 16px;border-radius:16px;border:1px solid var(--line);transition:opacity .5s,box-shadow .5s,border-color .5s;display:flex;flex-direction:column;gap:6px;min-height:118px}
+.tile.cai{border-color:rgba(255,138,104,.6);background:rgba(255,138,104,.09)}
+.tile.nao{border-color:#3a4170;background:rgba(255,255,255,.03)}
+.tile .st{font-size:12px;font-weight:800;letter-spacing:.12em}
+.tile.cai .st{color:var(--cor)}
+.tile.nao .st{color:#aab4d8}
+.tile .nm{font-size:clamp(17px,1.5vw,21px);font-weight:800;line-height:1.2}
+.tile .qs{font-size:14px;color:var(--mut)}
+.tile[data-k].active{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 0 34px rgba(138,164,255,.38)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+
+@media(prefers-reduced-motion:reduce){.slide,.card,li{transition:none}.slide.enter .anim{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><b>Vídeo-aula interativa</b> · Engenharia de Software I · Arquitetura de Software (Cap. 10)</div>
+  <div class="counter" id="counter">1 / 1</div>
+</header>
+<div id="voiceNote">Verificando vozes do navegador…</div>
+<main id="stage"></main>
+<section id="caption"><div id="capText"></div></section>
+<footer class="controls">
+  <div class="barrow"><span id="tNow">0:00</span><div id="bar" title="Clique para ir a qualquer ponto da aula"><div id="fill"></div><div id="ticks"></div><div id="knob"></div></div><span id="tTot">0:00</span></div>
+  <div class="btnrow">
+    <button class="b" id="bPrev">◀◀ Voltar</button>
+    <button class="b play" id="bPlay">▶ Play</button>
+    <button class="b" id="bNext">Avançar ▶▶</button>
+    <div class="seg" id="speeds"><button data-s="1" class="on">1x</button><button data-s="1.25">1.25x</button><button data-s="1.5">1.5x</button></div>
+    <select id="voiceSel" title="Voz da narração"></select>
+    <label class="chk"><input type="checkbox" id="showAll"> Mostrar tudo</label>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* =========================================================
+   CONTEÚDO (somente capítulos 7, 8 e 9)
+   ========================================================= */
+const CAP = "Capítulo 10 · Estilos arquiteturais (parte b)";
+const SLIDES = [
+{tipo:"intro", id:"intro"},
+{tipo:"mapa", id:"mapa"},
+{id:"k1", cap:CAP, titulo:"Publish-Subscribe: publica e esquece", cai:true,
+ conceito:`É o canal do YouTube: o criador publica, o inscrito recebe e a plataforma faz a ponte. O criador nem sabe quem está assistindo.`,
+ pontos:[`<b>Publicador</b>: componente que envia as mensagens`,`<b>Assinante</b>: componente que recebe as mensagens`,`<b>Message broker</b>: mediador que direciona as mensagens dos publicadores para os assinantes`,`Comunicação <b>assíncrona</b>; publicador e assinante são <b>independentes</b>`,`Mensagens podem ser <b>eventos, requisições ou notificações</b>`],
+ alerta:`Q12 inteira (V, V, V) vem daqui. Q10 e Q17 também giram em torno do broker e da comunicação assíncrona.`,
+ gatilho:`Publica e esquece. Quem entrega é o broker.`},
+{id:"k2", cap:CAP, titulo:"Message broker: quem recebe o quê", cai:true,
+ conceito:`É o carteiro do bairro: você deixa a carta, ele descobre o endereço certo e entrega, mesmo sem você conhecer o destinatário.`,
+ pontos:[`<b>Destinatário</b>: um assinante específico ou um grupo`,`<b>Regras</b>: direcionamento pelas características da mensagem`,`<b>Tópicos</b>: mensagens categorizadas e assinantes inscritos nos tópicos`,`Bom para <b>interoperabilidade</b> entre sistemas em máquinas diferentes`,`Se publicadores ou assinantes crescem muito, o broker pode virar problema de <b>escalabilidade</b>`],
+ alerta:`Q13: broker roteia por filas ou tópicos, garante entrega assíncrona e intermedeia aplicações. Guardar dados para consultas complexas é função de banco, não de broker.`,
+ gatilho:`Broker é carteiro, não arquivo morto.`},
+{id:"k3", cap:CAP, titulo:"SOA: serviços com um banco só", cai:false,
+ conceito:`É um shopping de serviços: cada loja funciona sozinha, mas todas usam o mesmo estoque central.`,
+ pontos:[`<b>SOA</b>: divide a aplicação em componentes que implementam serviços pedidos por um cliente`,`Serviços <b>desenvolvidos e implantados de forma independente</b>`,`Todos <b>compartilham um único banco de dados</b>`,`Só <b>uma instância</b> de cada serviço`,`<b>SOAP</b> usava HTTP e XML, tinha overhead, e o estilo ressurgiu com <b>REST mais JSON</b>`],
+ alerta:`Nenhuma questão da revisão cobra SOA. Prioridade baixa: estude depois do resto.`,
+ gatilho:`SOA: um banco só. Micro: um banco por serviço.`},
+{id:"k4", cap:CAP, titulo:"Monolito × microsserviços", cai:true,
+ conceito:`Monolito é um shopping com uma administração só. Microsserviços são lojas de rua independentes, cada uma com seu caixa e seu estoque.`,
+ pontos:[`<b>Monolito</b>: todas as funcionalidades em <b>um único processo</b>`,`<b>Microsserviços</b>: serviços <b>independentes</b> que se comunicam por mecanismos <b>leves</b>`,`Cada microsserviço, idealmente, tem <b>seu próprio banco de dados</b>`,`Podem ser feitos em <b>paralelo</b> e com <b>tecnologias diferentes</b>`,`Podem ser consumidos por <b>vários sistemas</b> e ter mais de uma instância`],
+ alerta:`Q2: "monolítica dividida em pequenas partes" é F e "microsserviços altamente acoplados" é F. Q7: cada microsserviço com seu banco é V.`,
+ gatilho:`Monolito: tudo junto. Micro: cada um na sua casa.`},
+{id:"k5", cap:CAP, titulo:"Por que microsserviços escalam melhor", cai:true,
+ conceito:`Se só a fila do caixa de bolos está enorme, você abre outro caixa de bolos, e não uma padaria inteira.`,
+ pontos:[`<b>Monolito</b>: para escalar é preciso <b>replicar o sistema inteiro</b> em vários servidores`,`<b>Microsserviços</b>: basta <b>replicar só os serviços</b> que precisam`,`Escalar um microsserviço <b>não obriga</b> os outros a escalar`,`Com várias instâncias de um serviço, o banco pode ser <b>compartilhado</b> ou <b>fragmentado</b>`,`Escalabilidade é o <b>principal motivo</b> de escolher microsserviços`],
+ alerta:`Q7, item 1: "ao escalar um microsserviço os outros também precisam" é F. Q19: picos só na inscrição pedem escalar só essa funcionalidade.`,
+ gatilho:`Escala só quem precisa. Monolito clona tudo.`},
+{id:"k6", cap:CAP, titulo:"API Gateway: a portaria", cai:true,
+ conceito:`É a portaria do prédio: todo visitante passa por ela, que confere quem é e encaminha para o apartamento certo.`,
+ pontos:[`Ponto <b>único de entrada</b> para o app móvel, o app web e outros sistemas`,`Fica <b>entre os clientes e os microsserviços</b>`,`Faz o <b>roteamento</b> das requisições para o serviço certo`,`Também cuida de <b>autenticação, controle de acesso e segurança</b>`,`Faz parte da camada de <b>middleware</b>`],
+ alerta:`Q14, item 1 (V): API Gateway é ponto único de entrada, com roteamento, autenticação e controle de acesso. Q11 também trata da integração entre frontend e microsserviços.`,
+ gatilho:`Uma porta só para todos os clientes.`},
+{id:"k7", cap:CAP, titulo:"Microsserviços: vantagens e cuidados", cai:true,
+ conceito:`É morar em casas separadas: ninguém atrapalha a reforma do vizinho, mas agora vocês precisam combinar como se visitam.`,
+ pontos:[`Vantagem: desenvolvimento <b>independente</b> e tecnologia <b>diferente</b> por serviço`,`Vantagem: mudar a implementação de um serviço <b>sem impacto</b> no resto`,`Vantagem: <b>mais escalabilidade</b>`,`Cuidado: não há regra de como dividir, e dependências aumentam a <b>complexidade</b>`,`Cuidado: <b>tolerância a falhas</b>, programação assíncrona e evitar <b>transações</b> entre serviços`],
+ alerta:`Q7: usar a mesma linguagem em todos é F, e só aceitar banco relacional é F. Q14, item 2 (V): gestão de dados descentralizada, cada serviço com seu banco.`,
+ gatilho:`Liberdade tem preço: mais partes, mais coordenação.`},
+{id:"k8", cap:CAP, titulo:"Sharding: fatiando o banco", cai:false,
+ conceito:`É dividir uma agenda enorme em várias menores: por letra do nome, ou separando contatos pessoais dos profissionais.`,
+ pontos:[`<b>Sharding</b>: dividir o banco em fragmentos, cada um em uma máquina`,`<b>Horizontal</b>: divide a tabela por <b>linhas</b>, como por estado ou faixa de CPF`,`<b>Vertical</b>: divide a tabela por <b>colunas</b>, como dados pessoais e profissionais`,`<b>Sharing</b> compartilha um banco; <b>sharding</b> fragmenta o banco`],
+ alerta:`Nenhuma questão da revisão cobra sharding. Prioridade baixa.`,
+ gatilho:`Horizontal corta linhas. Vertical corta colunas.`},
+{id:"k9", cap:CAP, titulo:"Arquitetura orientada a eventos", cai:true,
+ conceito:`É um alarme de incêndio: algo acontece, o alarme avisa, e cada equipe interessada reage do seu jeito, sem conversar entre si.`,
+ pontos:[`Sistema dividido em <b>processadores discretos</b> que tratam eventos de um workflow`,`Implantada com <b>broker</b> ou <b>mediator</b>`,`O <b>broker de eventos</b> recebe, guarda e garante a entrega aos consumidores`,`Processadores <b>totalmente desacoplados</b>, em paralelo e com tecnologias diferentes`,`Vantagem: alta escalabilidade e flexibilidade. Cuidado: baixo controle do workflow e exceções difíceis`],
+ alerta:`Q17 = c: o componente que captura, guarda e garante a entrega é o broker de eventos. Q11 usa eventos para tirar a dependência síncrona.`,
+ gatilho:`O evento acontece, o broker entrega, cada um reage.`},
+{id:"k10", cap:CAP, titulo:"Arquiteturas para IoT", cai:false,
+ conceito:`É o corpo humano: os sentidos captam o mundo, os nervos transportam e o cérebro processa e decide.`,
+ pontos:[`<b>Básica, com 3 camadas</b>: percepção, rede e aplicação`,`<b>Percepção</b>: sensores e atuadores`,`<b>Rede</b>: conexão, transmissão e armazenamento dos dados`,`<b>Aplicação</b>: administra dispositivos e define as regras`,`<b>Robusta, com 4 ou 5 camadas</b>: acrescenta transporte, processamento e negócio`],
+ alerta:`Nenhuma questão da revisão cobra IoT. Prioridade baixa.`,
+ gatilho:`Sente, transporta, processa, decide.`},
+{id:"k11", cap:CAP, titulo:"Arquitetura hexagonal", cai:true,
+ conceito:`É um notebook com portas USB: o núcleo define as portas e qualquer periférico se encaixa por um adaptador. Trocou o mouse, o núcleo nem percebe.`,
+ pontos:[`Separa <b>lógica da aplicação e do negócio</b> das <b>tecnologias</b>`,`Usa <b>portas e adaptadores</b> para isolar o núcleo`,`As tecnologias podem <b>mudar sem afetar</b> a lógica`,`Resultado: <b>acoplamento fraco</b> e mais testabilidade`,`Origem: Alistair Cockburn, 2005`],
+ alerta:`Q4 = d (acoplamento fraco, sem dependência de banco ou interface de usuário). Q18 = b (separar o negócio da infraestrutura por interfaces). Q9 também.`,
+ gatilho:`Núcleo no centro, tecnologia na borda.`},
+{id:"k12", cap:CAP, titulo:"Arquitetura Onion", cai:true,
+ conceito:`É uma cebola: o miolo é o domínio e cada casca só depende das de dentro. A infraestrutura fica na casca de fora.`,
+ pontos:[`Lógica de negócio em <b>camadas concêntricas</b>`,`Do centro para fora: <b>domínio, serviços do domínio e serviços da aplicação</b>`,`Na borda: <b>interface e infraestrutura</b>, os adaptadores`,`<b>Primários</b> são de entrada. <b>Secundários</b> são infraestrutura, como banco e e-mail`,`As dependências apontam <b>para dentro</b>. Origem: Palermo, 2008`],
+ alerta:`Q8 = c: núcleo independente, e adaptadores cuidando das entradas e saídas.`,
+ gatilho:`O miolo é o domínio. A tecnologia é casca.`},
+{id:"k13", cap:CAP, titulo:"Clean Architecture", cai:false,
+ conceito:`É a cebola com a receita do MVC e do EBI: cada casca tem um papel claro.`,
+ pontos:[`Resultado de <b>Hexagonal</b>, <b>Onion</b> e <b>Limpa</b>, de Robert Martin, em 2012`,`Camadas concêntricas: <b>Entities, Interactors</b> e adaptadores`,`Usa conceitos de <b>MVC, MVP e EBI</b>`,`<b>Controllers e Presenters</b> ficam nos adaptadores`,`<b>Ports</b> ligam o núcleo ao gateway do banco e à API`],
+ alerta:`Só aparece citada no enunciado da Q4. Nenhuma questão cobra os detalhes. Prioridade baixa.`,
+ gatilho:`Clean é hexagonal mais Onion, com MVC e EBI.`},
+{tipo:"questao", id:"r1", qs:"Q2 · itens 2 e 4", titulo:"Resolução: monolito e microsserviços",
+ enunciado:`Q2, itens sobre arquitetura monolítica ("sistema dividido em pequenas partes, implementadas individualmente") e microsserviços ("componentes altamente acoplados, o que dificulta a manutenção"). Os outros itens são de outros capítulos.`,
+ resposta:`F e F`,
+ porque:[`Monolito roda em <b>um único processo</b>, não em partes independentes`,`Quem divide em partes implementadas individualmente é o <b>microsserviço</b>`,`Microsserviços são <b>fracamente acoplados</b>: independentes e com comunicação leve`,`Alto acoplamento e manutenção difícil descrevem o oposto`],
+ pegadinha:`Os dois itens trocam as definições: atribuem ao monolito o que é do micro e ao micro o que é do monolito.`,
+ gatilho:`Micro é solto, monolito é bloco.`},
+{tipo:"questao", id:"r2", qs:"Q4 e Q18", titulo:"Resolução: arquitetura hexagonal",
+ enunciado:`Q4: a proposta da arquitetura hexagonal é criar o quê? Q18: qual alternativa descreve o objetivo principal da hexagonal?`,
+ resposta:`Q4 = d. Q18 = b`,
+ porque:[`<b>Q4, d</b>: acoplamento fraco, sem dependência de armazenamento de dados ou de interface de usuário`,`<b>Q18, b</b>: separar a lógica de negócio da infraestrutura, falando com o exterior por interfaces`,`As demais pedem <b>latência, acoplamento forte</b> ou dependência de tecnologia, o contrário da proposta`,`Reconheça pela dupla <b>portas e adaptadores</b>`],
+ pegadinha:`Alternativas que dizem que a aplicação depende de tecnologias específicas, ou que concentram tudo num núcleo ignorando o exterior.`,
+ gatilho:`Hexagonal solta o núcleo da tecnologia.`},
+{tipo:"questao", id:"r3", qs:"Q7", titulo:"Resolução: microsserviços, V ou F",
+ enunciado:`Q7: 1) escalar um microsserviço exige escalar aqueles dos quais ele depende. 2) Usar a mesma linguagem em todos. 3) Microsserviços adotam banco relacional. 4) Cada microsserviço tem seu próprio banco.`,
+ resposta:`F, F, F, V`,
+ porque:[`<b>1 é F</b>: escala-se só o serviço que precisa`,`<b>2 é F</b>: cada serviço pode usar tecnologia diferente`,`<b>3 é F</b>: não há limitação a banco relacional`,`<b>4 é V</b>: banco próprio por serviço, gestão de dados descentralizada`],
+ pegadinha:`Os itens 1 e 2 parecem boas práticas, mas vão contra a vantagem de escalar só o necessário e de usar tecnologias distintas.`,
+ gatilho:`Escala um só, linguagem livre, banco livre, banco próprio.`},
+{tipo:"questao", id:"r4", qs:"Q8", titulo:"Resolução: arquitetura Onion",
+ enunciado:`Q8: a agência de metrô quer módulos de lotação, previsão e priorização desacoplados de sensores, bilhetagem e APIs externas, usando arquitetura Onion. O que decidiram?`,
+ resposta:`Alternativa c`,
+ porque:[`<b>c</b>: núcleo de domínio independente, com adaptadores cuidando de entradas e saídas`,`<b>a</b> erra: APIs externas não coordenam o domínio`,`<b>b</b> erra: a lógica não vai para os adaptadores`,`<b>d</b> erra: nada obriga microsserviços com mensageria`,`<b>e</b> erra: driver de hardware não fica no domínio`],
+ pegadinha:`O enunciado fala em portas, como na hexagonal. A ideia central é a mesma: domínio no centro, tecnologia na borda.`,
+ gatilho:`Domínio no meio, hardware na casca.`},
+{tipo:"questao", id:"r5", qs:"Q9", titulo:"Resolução: portas na hexagonal",
+ enunciado:`Q9: na hexagonal, para o núcleo chamar persistência sem acoplar a um banco específico, onde ficam o contrato da interface e a implementação?`,
+ resposta:`Conceito: porta no núcleo, implementação em adaptador secundário. Mais próxima: d`,
+ porque:[`A <b>porta</b> é uma interface que pertence ao <b>núcleo</b>`,`A <b>implementação</b> é um <b>adaptador secundário</b>, de infraestrutura, fora do núcleo`,`Persistência é saída, então não é adaptador primário: <b>b erra</b>`,`Interface na apresentação ou nos adaptadores inverte a dependência: <b>a e c erram</b>`,`<b>d</b> é a mais próxima, mas "controlador do banco" não é o termo exato, e <b>e</b> também é possível`],
+ pegadinha:`A alternativa b fala em adaptadores primários, que são os de entrada. Esta questão é ambígua: vale confirmar com o professor.`,
+ gatilho:`Porta no núcleo, adaptador na borda, banco é secundário.`},
+{tipo:"questao", id:"r6", qs:"Q10 e Q13", titulo:"Resolução: message broker e MQTT",
+ enunciado:`Q10: MQTT como middleware para desacoplar o sistema acadêmico do financeiro, com processamento assíncrono. Q13: todas são características de um message broker, exceto qual?`,
+ resposta:`Q10 = e. Q13 = b`,
+ porque:[`<b>Q10, e</b>: o MQTT atua como broker, roteando de produtores para consumidores de forma assíncrona`,`MQTT não faz chamada síncrona, não substitui banco e não elimina filas`,`<b>Q13, b</b>: armazenar dados para consultas complexas é função de banco de dados`,`As demais são do broker: rotear por filas ou tópicos, garantir entrega, pub/sub e desacoplar`],
+ pegadinha:`Alternativas que misturam broker com banco de dados ou com chamada HTTP síncrona. O MQTT não aparece nominalmente no capítulo, mas é um broker de pub/sub.`,
+ gatilho:`Broker entrega, banco guarda.`},
+{tipo:"questao", id:"r7", qs:"Q11", titulo:"Resolução: e-commerce com microsserviços",
+ enunciado:`Q11: o app móvel faz muitas chamadas síncronas e recebe dados demais. O fechamento do pedido depende de uma cadeia síncrona, e a falha da notificação trava tudo. Qual solução?`,
+ resposta:`Alternativa d`,
+ porque:[`Dados em excesso no mobile: criar um <b>backend específico para o cliente mobile</b>, que agrega e formata as respostas`,`Cadeia síncrona: adotar <b>comunicação orientada a eventos</b> entre as etapas do pedido`,`Assim a notificação fora do ar deixa de travar o pedido`,`<b>a</b> centraliza tudo, <b>b</b> usa mensageria até em consultas, <b>c</b> expõe bancos ao celular`],
+ pegadinha:`Centralizar tudo em um único backend e expor banco ao frontend ferem a lógica de microsserviços. O backend sob medida para o mobile não aparece nominalmente no capítulo.`,
+ gatilho:`Mobile ganha backend sob medida. Etapas viram eventos.`},
+{tipo:"questao", id:"r8", qs:"Q12", titulo:"Resolução: Publish/Subscribe, V ou F",
+ enunciado:`Q12: 1) publicadores não conhecem os assinantes, que se inscrevem e cancelam dinamicamente. 2) Desacoplamento espacial e de sincronização, e temporal com retenção. 3) O publicador não depende da confirmação dos assinantes.`,
+ resposta:`V, V, V`,
+ porque:[`<b>1 é V</b>: o broker faz a ligação, e o publicador não conhece os assinantes`,`<b>2 é V</b>: não precisam saber endereços nem esperar resposta, e com persistência até o tempo se desacopla`,`<b>3 é V</b>: o envio é assíncrono, e o publicador segue em frente`],
+ pegadinha:`Aqui todas são verdadeiras. A pegadinha é desconfiar demais.`,
+ gatilho:`Pub/Sub: não conhece, não espera, não depende.`},
+{tipo:"questao", id:"r9", qs:"Q14 · itens 1 e 2", titulo:"Resolução: API Gateway e dados por serviço",
+ enunciado:`Q14, item 1: o API Gateway é ponto único de entrada, na camada de middleware, com roteamento, autenticação e controle de acesso. Item 2: microsserviços descentralizam a gestão de dados, com um banco por serviço.`,
+ resposta:`V e V`,
+ porque:[`<b>Item 1 é V</b>: o gateway fica entre os clientes e os microsserviços como entrada única`,`Funções típicas: roteamento, autenticação, transformação de mensagens e controle de acesso`,`<b>Item 2 é V</b>: diferente do N camadas, cada serviço tem, idealmente, o seu banco`],
+ pegadinha:`Os itens 3 e 4 da questão são do capítulo 9, sobre REST, MVC e EBC.`,
+ gatilho:`Gateway é a portaria. Banco é por serviço.`},
+{tipo:"questao", id:"r10", qs:"Q17", titulo:"Resolução: o broker de eventos",
+ enunciado:`Q17: na arquitetura orientada a eventos, qual componente captura eventos de várias fontes, armazena temporariamente e garante a entrega, mesmo com falhas?`,
+ resposta:`Alternativa c: broker de eventos`,
+ porque:[`O <b>broker</b> é o mediador que recebe os eventos e entrega aos consumidores`,`O <b>produtor</b> só gera eventos, e o <b>consumidor</b> só reage`,`Banco de dados persiste dados, mas não garante entrega`,`<b>Log de eventos</b> registra, mas não faz a entrega`],
+ pegadinha:`O log de eventos tenta enganar pela palavra "armazenar", mas quem garante a entrega é o broker.`,
+ gatilho:`Quem entrega é o broker.`},
+{tipo:"questao", id:"r11", qs:"Q19", titulo:"Resolução: picos no monolito (dissertativa)",
+ enunciado:`Q19: sistema acadêmico web 3-tier, com thin client e backend monolítico. A inscrição em disciplinas tem picos duas vezes por ano e falha. O histórico não tem picos. Que solução, com impacto mínimo, e como ela resolve?`,
+ resposta:`Resposta sugerida (sem gabarito oficial)`,
+ porque:[`<b>Diagnóstico</b>: o monolito só escala replicando tudo, mesmo o que não tem pico`,`<b>Solução</b>: extrair a inscrição como microsserviço, atrás de um API Gateway, e escalar só ele`,`<b>Impacto mínimo</b>: o restante do monolito continua como está`,`<b>Alternativa mais simples</b>: replicar o servidor de aplicação atrás de um balanceador de carga`,`Cuidado com o <b>banco</b>: ele pode virar o gargalo`],
+ pegadinha:`Não basta citar microsserviços: explique como o pico é absorvido, replicando só o serviço de inscrição.`,
+ gatilho:`Pico numa função? Escale só ela.`},
+{tipo:"resumo", id:"resumo"}
+];
+
+const MAPA = [
+ {t:"Pub/Sub e message broker", st:"cai", q:"Q10, Q12, Q13, Q17"},
+ {t:"Microsserviços", st:"cai", q:"Q2, Q7, Q11, Q14, Q19"},
+ {t:"Arquitetura hexagonal", st:"cai", q:"Q4, Q9, Q18"},
+ {t:"Arquitetura Onion", st:"cai", q:"Q8"},
+ {t:"API Gateway", st:"cai", q:"Q11, Q14"},
+ {t:"Orientada a eventos", st:"cai", q:"Q11, Q17"},
+ {t:"SOA", st:"nao", q:""},
+ {t:"Sharding do banco", st:"nao", q:""},
+ {t:"Arquiteturas para IoT", st:"nao", q:""},
+ {t:"Clean Architecture", st:"nao", q:"só citada na Q4"}
+];
+
+/* =========================================================
+   LIMPEZA DO TEXTO PARA A VOZ
+   ========================================================= */
+const SUBS = [
+ [/<[^>]+>/g,""],
+ [/\bSOA\b/g,"S O A"],
+ [/\bIoT\b/g,"I o T"],
+ [/\bBFF\b/g,"B F F"],
+ [/\bMQTT\b/g,"M Q T T"],
+ [/\bQ(\d+)/g,"questão $1"],
+ [/Cap\./g,"Capítulo"],
+ [/×/g," versus "],
+ [/\bvs\.?/gi," versus "],
+ [/\s=\s/g," é "],
+ [/→/g," leva a "],
+ [/·/g,","],
+ [/[▪✔✘📌💡🎯⚠️🧠]/g,""],
+ [/(\d)\+(\d)/g,"$1 mais $2"],
+ [/\s\+\s/g," mais "],
+ [/\bBD\b/g,"banco de dados"],
+ [/\bUI\b/g,"interface do usuário"],
+ [/(\d)-Tier/g,"$1 tier"],
+ [/\bN-Tier/g,"N tier"],
+ [/\bPub\/Sub/g,"pub sub"],
+ [/\bCRUD\b/g,"crud"],
+ [/\*/g,""],
+ [/\s+/g," "]
+];
+function clean(t){ let s=t; for(const [r,v] of SUBS) s=s.replace(r,v); s=s.trim(); if(!/[.!?:]$/.test(s)) s+="."; return s; }
+
+/* =========================================================
+   ROTEIRO (array pedido: slideId, textoLegenda, audioUrl, duracao)
+   audioUrl: preencha com o MP3 do slide (ElevenLabs / Google Cloud TTS)
+   para tocar o arquivo no lugar da voz do navegador.
+   ========================================================= */
+const CPS = 14; // caracteres por segundo (estimativa a 1x)
+function segsFor(s){
+  if(s.tipo==="intro") return [
+   {alvo:"titulo", t:"Olá! Nesta vídeo-aula você vai estudar o capítulo dez de Engenharia de Software um: estilos arquiteturais, parte b."},
+   {alvo:"c1", t:"Primeiro, o mapa do capítulo: o que cai e o que não cai na prova, de acordo com a revisão."},
+   {alvo:"c2", t:"Depois, o conteúdo de cada tema, com selo de caiu ou não caiu, analogia, pontos para memorizar e macete."},
+   {alvo:"c3", t:"Por fim, a resolução passo a passo de cada questão da revisão ligada a este capítulo."},
+   {alvo:"fmt", t:"Aperte play e vamos lá!"}
+  ];
+  if(s.tipo==="mapa"){
+   const a=[{alvo:"titulo", t:"Mapa do capítulo dez: o que cai e o que não cai na prova."}];
+   MAPA.forEach((m,i)=>a.push({alvo:"t"+i, t: m.st==="cai" ? clean(m.t+". Caiu: "+m.q) : clean(m.t+". Não caiu"+(m.q?", "+m.q:""))}));
+   a.push({alvo:"rod", t:"As questões 1 e 16, as de processos e as dos capítulos sete, oito e nove ficam fora desta aula."});
+   return a;
+  }
+  if(s.tipo==="resumo"){
+   return [
+    {alvo:"titulo", t:"Para fechar, o resumo do capítulo dez."},
+    {alvo:"cai", t:"Estude primeiro: Pub/Sub e broker, microsserviços e escalabilidade, API Gateway, orientada a eventos, hexagonal e Onion."},
+    {alvo:"nao", t:"Deixe para depois: SOA, sharding, IoT e os detalhes da Clean Architecture."},
+    {alvo:"nota", t:"Na questão nove, confirme com o professor. E a questão dezenove é uma resposta sugerida. Bons estudos!"}
+   ];
+  }
+  if(s.tipo==="questao"){
+   const a=[{alvo:"titulo", t:clean("Resolução. "+s.qs+". "+s.titulo.replace(/^Resolução:\s*/,""))},
+            {alvo:"enun", t:"Enunciado. "+clean(s.enunciado)},
+            {alvo:"resp", t:"Resposta. "+clean(s.resposta)}];
+   s.porque.forEach((p,i)=>a.push({alvo:"p"+i, t:(i===0?"Por quê. ":"")+clean(p)}));
+   a.push({alvo:"peg", t:"Pegadinha. "+clean(s.pegadinha)});
+   a.push({alvo:"gatilho", t:"Macete. "+clean(s.gatilho)});
+   return a;
+  }
+  const a=[{alvo:"titulo", t:clean(s.cap+". "+s.titulo)},{alvo:"conceito", t:"Conceito central. "+clean(s.conceito)}];
+  s.pontos.forEach((p,i)=>a.push({alvo:"p"+i, t:(i===0?"Pontos para memorizar. ":"")+clean(p)}));
+  a.push({alvo:"alerta", t:(s.cai?"Caiu na revisão. ":"Não caiu na revisão. ")+clean(s.alerta)});
+  a.push({alvo:"gatilho", t:"Macete. "+clean(s.gatilho)});
+  return a;
+}
+
+const AULA = SLIDES.map(s=>{
+  const segmentos=segsFor(s).map(g=>({...g, dur:Math.max(1.8,g.t.length/CPS)}));
+  return {slideId:s.id, textoLegenda:segmentos.map(g=>g.t).join(" "), audioUrl:"", duracao:Math.round(segmentos.reduce((x,g)=>x+g.dur,0)), segmentos};
+});
+
+/* =========================================================
+   RENDERIZAÇÃO
+   ========================================================= */
+const stage=document.getElementById("stage");
+function anim(n){return `class="anim" style="--n:${n}"`;}
+function renderSlide(s,i){
+  let h="";
+  if(s.tipo==="intro"){
+    h=`<div class="wrap hero">
+      <div class="head anim" style="--n:0"><span class="chip">Engenharia de Software I · Revisão P1</span></div>
+      <h1 data-k="titulo" class="anim" style="--n:1">Capítulo 10: Estilos arquiteturais, parte b</h1>
+      <p class="sub anim" style="--n:2">Pub/Sub, microsserviços, eventos, hexagonal e Onion, com o que cai e o que não cai na prova.</p>
+      <div class="trio">
+        <div class="card anim" data-k="c1" style="--n:3"><div class="n">1</div><p><b>Mapa do capítulo</b><br>O que cai e o que não cai.</p></div>
+        <div class="card anim" data-k="c2" style="--n:4"><div class="n">2</div><p><b>Conteúdo</b><br>Analogia, pontos e macete, com selo de prioridade.</p></div>
+        <div class="card anim" data-k="c3" style="--n:5"><div class="n">3</div><p><b>Resolução das questões</b><br>Passo a passo, com as pegadinhas.</p></div>
+      </div>
+      <div class="card anim" data-k="fmt" style="--n:6"><h4>Selos que você vai ver</h4><div class="how"><span>🔥 Caiu na revisão</span><span>🚫 Não caiu na revisão</span><span>✅ Resposta</span><span>🪤 Pegadinha</span></div></div>
+      <button class="bigplay anim" style="--n:7" id="bigPlay">▶ Começar a aula</button>
+    </div>`;
+  } else if(s.tipo==="mapa"){
+    h=`<div class="wrap">
+      <div class="head anim" style="--n:0"><span class="chip">Comece por aqui</span><h2 data-k="titulo">🗺️ O que cai e o que não cai</h2></div>
+      <div class="tiles">${MAPA.map((m,k)=>`<div class="tile ${m.st} anim" data-k="t${k}" style="--n:${k+1}"><div class="st">${m.st==="cai"?"🔥 CAIU":"🚫 NÃO CAIU"}</div><div class="nm">${m.t}</div><div class="qs">${m.q||"sem questão na revisão"}</div></div>`).join("")}</div>
+      <div class="card anim" data-k="rod" style="--n:11"><p class="foot">Fora desta aula: Q1 e Q16, as questões de processos e as dos capítulos 7, 8 e 9. Contagem feita sobre as 19 questões de arquitetura da revisão.</p></div>
+    </div>`;
+  } else if(s.tipo==="questao"){
+    h=`<div class="wrap">
+      <div class="head anim" style="--n:0"><div class="row"><span class="chip">Resolução · ${s.qs}</span><span class="pill cai">🔥 CAIU NA REVISÃO</span></div><h2 data-k="titulo">📝 ${s.titulo.replace(/^Resolução:\s*/,"")}</h2></div>
+      <div class="grid">
+        <div class="col">
+          <div class="card enun anim" data-k="enun" style="--n:1"><h4>📝 Enunciado resumido</h4><p>${s.enunciado}</p></div>
+          <div class="card resp anim" data-k="resp" style="--n:2"><h4>✅ Resposta</h4><p class="big">${s.resposta}</p></div>
+          <div class="card gatilho anim" data-k="gatilho" style="--n:5"><h4>🧠 Gatilho mental</h4><p>${s.gatilho}</p></div>
+        </div>
+        <div class="col">
+          <div class="card pontos anim" style="--n:3"><h4>🔍 Por quê</h4><ul>${s.porque.map((p,k)=>`<li data-k="p${k}">${p}</li>`).join("")}</ul></div>
+          <div class="card alerta anim" data-k="peg" style="--n:4"><h4>🪤 Pegadinha</h4><p>${s.pegadinha}</p></div>
+        </div>
+      </div>
+    </div>`;
+  } else if(s.tipo==="resumo"){
+    h=`<div class="wrap">
+      <div class="head anim" style="--n:0"><span class="chip">Fechamento</span><h2 data-k="titulo">✅ Resumo do capítulo 10</h2></div>
+      <div class="two">
+        <div class="card anim" data-k="cai" style="--n:1"><h4 style="color:var(--cor)">🔥 Estude primeiro</h4><ul><li>Pub/Sub e message broker</li><li>Microsserviços e escalabilidade</li><li>API Gateway</li><li>Orientada a eventos</li><li>Hexagonal e Onion</li></ul></div>
+        <div class="card anim" data-k="nao" style="--n:2"><h4 style="color:#aab4d8">🚫 Fica para depois</h4><ul><li>SOA</li><li>Sharding do banco</li><li>Arquiteturas para IoT</li><li>Detalhes da Clean Architecture</li></ul></div>
+      </div>
+      <div class="card anim" data-k="nota" style="--n:3"><p class="foot">Q9 é ambígua e a Q19 é uma resposta sugerida: confirme as duas com o professor. As questões 11 e 10 usam termos (backend para o mobile e MQTT) que não aparecem nominalmente no capítulo.</p></div>
+    </div>`;
+  } else {
+    const pill = s.cai ? `<span class="pill cai">🔥 CAIU NA REVISÃO</span>` : `<span class="pill nao">🚫 NÃO CAIU NA REVISÃO</span>`;
+    h=`<div class="wrap">
+      <div class="head anim" style="--n:0"><div class="row"><span class="chip">${s.cap}</span>${pill}</div><h2 data-k="titulo">📌 ${s.titulo}</h2></div>
+      <div class="grid">
+        <div class="col">
+          <div class="card conceito anim" data-k="conceito" style="--n:1"><h4>💡 Conceito central &amp; analogia</h4><p>${s.conceito}</p></div>
+          <div class="card gatilho anim" data-k="gatilho" style="--n:4"><h4>🧠 Gatilho mental</h4><p>${s.gatilho}</p></div>
+        </div>
+        <div class="col">
+          <div class="card pontos anim" style="--n:2"><h4>🎯 Pontos de memorização</h4><ul>${s.pontos.map((p,k)=>`<li data-k="p${k}">${p}</li>`).join("")}</ul></div>
+          <div class="card alerta ${s.cai?"":"nao"} anim" data-k="alerta" style="--n:3"><h4>${s.cai?"⚠️ Alerta de prova":"🚫 Não caiu na revisão"}</h4><p>${s.alerta}</p></div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const el=document.createElement("article");
+  el.className="slide"; el.id="slide-"+i; el.innerHTML=h;
+  stage.appendChild(el);
+}
+
+SLIDES.forEach(renderSlide);
+const slideEls=[...document.querySelectorAll(".slide")];
+const N=SLIDES.length;
+
+/* =========================================================
+   ESTADO E MOTOR DA AULA
+   ========================================================= */
+const S={cur:0, seg:-1, playing:false, speed:1, token:0, voice:null, wd:null, segT0:0, finished:false};
+const canSpeak=("speechSynthesis" in window) && ("SpeechSynthesisUtterance" in window);
+const audio=new Audio(); audio.preload="auto";
+const $=id=>document.getElementById(id);
+
+// timeline global
+const base=[]; let total=0;
+AULA.forEach(a=>{base.push(total); total+=a.segmentos.reduce((x,g)=>x+g.dur,0);});
+const fmt=t=>{t=Math.max(0,Math.round(t));return Math.floor(t/60)+":"+String(t%60).padStart(2,"0");};
+$("tTot").textContent="≈ "+fmt(total);
+$("ticks").innerHTML=base.slice(1).map(b=>`<i style="left:${b/total*100}%"></i>`).join("");
+
+function applyHighlight(){
+  const el=slideEls[S.cur], segs=AULA[S.cur].segmentos, idx={};
+  segs.forEach((g,i)=>{ if(!(g.alvo in idx)) idx[g.alvo]=i; });
+  el.querySelectorAll("[data-k]").forEach(n=>{
+    const k=n.dataset.k, i=idx[k]; let c;
+    if(k==="titulo") c = S.seg<=0 ? "active" : "read";
+    else if(S.seg<0) c = S.playing ? "unread" : "read";
+    else c = i<S.seg?"read": i===S.seg?"active":"unread";
+    n.classList.remove("read","active","unread"); n.classList.add(c);
+  });
+  const act=el.querySelector("li.active, .card.active");
+  if(act && act.scrollIntoView){ try{act.scrollIntoView({block:"nearest",behavior:"smooth"});}catch(e){} }
+}
+let capSpans=[];
+function showCaption(text){
+  const box=$("capText"); box.textContent=""; capSpans=[];
+  const re=/\S+/g; let m, last=0;
+  while((m=re.exec(text))){
+    const sp=document.createElement("span"); sp.className="w"; sp.textContent=m[0]; sp.dataset.s=m.index;
+    box.appendChild(sp); box.appendChild(document.createTextNode(" ")); capSpans.push(sp);
+  }
+}
+function markWords(ci){ capSpans.forEach(sp=>sp.classList.toggle("on", +sp.dataset.s<=ci)); }
+function finishCaption(){ capSpans.forEach(sp=>sp.classList.add("on")); }
+function setCounter(){ $("counter").textContent=(S.cur+1)+" / "+N; }
+function setPlayBtn(){ $("bPlay").textContent=S.playing?"❚❚ Pause":"▶ Play"; }
+
+function stopAll(){
+  S.token++; clearTimeout(S.wd);
+  if(canSpeak) try{speechSynthesis.cancel();}catch(e){}
+  audio.onended=audio.ontimeupdate=audio.onloadedmetadata=audio.onerror=null;
+  try{audio.pause();}catch(e){}
+}
+function goSlide(i,opts={}){
+  i=Math.max(0,Math.min(N-1,i));
+  stopAll();
+  slideEls.forEach((el,j)=>{ el.classList.toggle("active",j===i); el.classList.toggle("past",j<i); el.classList.remove("enter"); });
+  S.cur=i; S.seg=-1; S.finished=false;
+  const el=slideEls[i]; void el.offsetWidth; el.classList.add("enter"); el.scrollTop=0;
+  applyHighlight(); setCounter();
+  showCaption(S.playing||opts.keep ? AULA[i].segmentos[0].t : "Pressione Play para ouvir a explicação deste slide.");
+  if(!(S.playing||opts.keep)) finishCaption();
+}
+function segIndexAudio(frac){
+  const segs=AULA[S.cur].segmentos, tot=segs.reduce((x,g)=>x+g.t.length,0); let acc=0;
+  for(let i=0;i<segs.length;i++){ acc+=segs[i].t.length/tot; if(frac<acc) return i; }
+  return segs.length-1;
+}
+function playFrom(k){
+  stopAll(); const tok=S.token; S.playing=true; S.finished=false; setPlayBtn();
+  const a=AULA[S.cur];
+  setTimeout(()=>{
+    if(tok!==S.token) return;
+    if(a.audioUrl) playAudio(k,tok); else speakSeg(k,tok);
+  },80);
+}
+function playAudio(k,tok){
+  const segs=AULA[S.cur].segmentos, tot=segs.reduce((x,g)=>x+g.t.length,0);
+  audio.src=AULA[S.cur].audioUrl; audio.playbackRate=S.speed;
+  audio.onloadedmetadata=()=>{
+    let start=0; for(let i=0;i<k;i++) start+=segs[i].t.length/tot;
+    try{audio.currentTime=start*audio.duration;}catch(e){}
+    audio.play().catch(()=>{ AULA[S.cur].audioUrl=""; speakSeg(k,tok); });
+  };
+  audio.ontimeupdate=()=>{
+    if(tok!==S.token||!audio.duration) return;
+    const i=segIndexAudio(audio.currentTime/audio.duration);
+    if(i!==S.seg){ S.seg=i; S.segT0=performance.now(); applyHighlight(); showCaption(segs[i].t); finishCaption(); }
+  };
+  audio.onended=()=>endSlide(tok);
+  audio.onerror=()=>{ if(tok!==S.token) return; AULA[S.cur].audioUrl=""; speakSeg(k,tok); };
+  audio.load();
+}
+function speakSeg(k,tok){
+  if(tok!==S.token) return;
+  const segs=AULA[S.cur].segmentos;
+  if(k>=segs.length) return endSlide(tok);
+  S.seg=k; S.segT0=performance.now(); applyHighlight();
+  const text=segs[k].t; showCaption(text);
+  let done=false;
+  const next=()=>{ if(done||tok!==S.token) return; done=true; clearTimeout(S.wd); finishCaption(); speakSeg(k+1,tok); };
+  if(!canSpeak){ S.wd=setTimeout(next, segs[k].dur*1000/S.speed); return; }
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=S.voice?S.voice.lang:"pt-BR"; if(S.voice) u.voice=S.voice;
+  u.rate=S.speed; u.pitch=1; u.volume=1;
+  u.onend=next;
+  u.onerror=e=>{ if(tok!==S.token||done) return; if(e.error==="canceled"||e.error==="interrupted") return; clearTimeout(S.wd); S.wd=setTimeout(next, segs[k].dur*1000/S.speed); };
+  u.onboundary=e=>{ if(tok===S.token && (e.name==="word"||e.name===undefined)) markWords(e.charIndex); };
+  // proteção: alguns navegadores deixam de disparar "onend"
+  S.wd=setTimeout(()=>{ if(done||tok!==S.token) return; try{speechSynthesis.cancel();}catch(e){} next(); }, text.length*140/S.speed+5000);
+  try{speechSynthesis.speak(u);}catch(e){ S.wd=setTimeout(next, segs[k].dur*1000/S.speed); }
+}
+function endSlide(tok){
+  if(tok!==S.token) return;
+  if(S.cur<N-1){
+    goSlide(S.cur+1,{keep:true});
+    const t2=S.token; setTimeout(()=>{ if(S.playing && t2===S.token) playFrom(0); },700);
+  } else {
+    S.playing=false; S.finished=true; setPlayBtn(); finishCaption();
+  }
+}
+function pause(){ S.playing=false; stopAll(); setPlayBtn(); finishCaption(); }
+function play(){ if(S.finished){ goSlide(0); } playFrom(Math.max(S.seg,0)); }
+function toggle(){ S.playing?pause():play(); }
+function go(delta){
+  const was=S.playing; goSlide(S.cur+delta,{keep:was});
+  if(was) playFrom(0);
+}
+
+/* progresso */
+function posNow(){
+  const segs=AULA[S.cur].segmentos; let p=base[S.cur];
+  const k=Math.max(S.seg,0); for(let i=0;i<k;i++) p+=segs[i].dur;
+  if(S.playing && S.seg>=0){ const el=(performance.now()-S.segT0)/1000*S.speed; p+=Math.min(el,segs[S.seg].dur*0.98); }
+  if(S.finished) p=total;
+  return p;
+}
+function frame(){
+  const p=posNow(), f=Math.min(1,p/total);
+  $("fill").style.width=(f*100)+"%"; $("knob").style.left=(f*100)+"%";
+  $("tNow").textContent=fmt(p);
+  requestAnimationFrame(frame);
+}
+$("bar").addEventListener("click",e=>{
+  const r=$("bar").getBoundingClientRect(); const t=Math.max(0,Math.min(0.9999,(e.clientX-r.left)/r.width))*total;
+  let i=0; while(i<N-1 && base[i+1]<=t) i++;
+  const off=t-base[i], segs=AULA[i].segmentos; let acc=0,k=0;
+  for(;k<segs.length-1;k++){ if(off<acc+segs[k].dur) break; acc+=segs[k].dur; }
+  const was=S.playing; goSlide(i,{keep:true});
+  if(was) playFrom(k);
+  else { S.seg=k; applyHighlight(); showCaption(segs[k].t); finishCaption(); }
+});
+
+/* controles */
+$("bPlay").onclick=toggle; $("bNext").onclick=()=>go(1); $("bPrev").onclick=()=>go(-1);
+document.addEventListener("click",e=>{ if(e.target.id==="bigPlay") play(); });
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="SELECT"||e.target.tagName==="INPUT") return;
+  if(e.code==="Space"){e.preventDefault();toggle();}
+  else if(e.code==="ArrowRight") go(1);
+  else if(e.code==="ArrowLeft") go(-1);
+});
+$("speeds").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  S.speed=parseFloat(b.dataset.s);
+  [...$("speeds").children].forEach(x=>x.classList.toggle("on",x===b));
+  audio.playbackRate=S.speed;
+  if(S.playing && !AULA[S.cur].audioUrl) playFrom(Math.max(S.seg,0));
+});
+$("showAll").onchange=e=>document.body.classList.toggle("showall",e.target.checked);
+
+/* vozes */
+function score(v){
+  const n=(v.name+" "+v.voiceURI).toLowerCase(); let s=0;
+  if(/francisca/.test(n)&&/online|natural/.test(n)) s+=100;
+  else if(/antonio|antônio|thalita/.test(n)&&/online|natural/.test(n)) s+=95;
+  else if(/online|natural|neural/.test(n)) s+=85;
+  else if(/google/.test(n)) s+=70;
+  if(/^pt[-_]br/i.test(v.lang)) s+=10;
+  return s;
+}
+function loadVoices(){
+  if(!canSpeak){ $("voiceNote").className="warn"; $("voiceNote").textContent="Este navegador não tem síntese de voz. A aula roda só com legendas e temporizador. Use Edge ou Chrome para ouvir a narração."; $("voiceSel").style.display="none"; return; }
+  const all=speechSynthesis.getVoices(); if(!all.length) return;
+  const pt=all.filter(v=>/^pt/i.test(v.lang)).sort((a,b)=>score(b)-score(a));
+  const sel=$("voiceSel"); sel.innerHTML="";
+  if(!pt.length){
+    $("voiceNote").className="warn";
+    $("voiceNote").textContent="Nenhuma voz em português foi encontrada neste navegador. A leitura usará a voz padrão ou só as legendas. Para melhor resultado, abra no Microsoft Edge (voz Francisca Online) ou no Chrome (voz Google), ou preencha o audioUrl com MP3.";
+    sel.style.display="none"; S.voice=null; return;
+  }
+  sel.style.display="";
+  pt.forEach((v,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=v.name+(score(v)>=70?" ★":""); sel.appendChild(o); });
+  const keep=S.voice && pt.find(v=>v.voiceURI===S.voice.voiceURI);
+  S.voice=keep||pt[0]; sel.value=pt.indexOf(S.voice);
+  sel.onchange=()=>{ S.voice=pt[+sel.value]; noteVoice(); if(S.playing) playFrom(Math.max(S.seg,0)); };
+  noteVoice();
+}
+function noteVoice(){
+  const v=S.voice, nat=v&&score(v)>=70, n=$("voiceNote");
+  if(nat){ n.className="ok"; n.textContent="Voz natural em uso: "+v.name+". Você pode trocar a voz no seletor abaixo."; }
+  else { n.className="warn"; n.textContent="Só encontrei voz robótica ("+(v?v.name:"padrão")+"). Para voz natural, abra no Microsoft Edge (Francisca Online) ou no Chrome (Google português do Brasil), ou preencha o audioUrl de cada slide com um MP3 do ElevenLabs ou Google Cloud TTS."; }
+}
+if(canSpeak){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; setTimeout(loadVoices,600); setTimeout(loadVoices,1800); } else loadVoices();
+
+/* início */
+goSlide(0); setPlayBtn(); frame();
+window.__aula={S,AULA,goSlide,playFrom,pause};
+</script>
+<script src="bridge.js"></script>
+</body>
+</html>

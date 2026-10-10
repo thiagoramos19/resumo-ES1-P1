@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aula 2 · Métodos Ágeis, Scrum, Kanban e Estórias</title>
+<style>
+:root{--bg:#0a0d19;--bg2:#10142a;--card:#141934;--line:#262d52;--txt:#e9ecf8;--mut:#9aa4cc;--violet:#a78bfa;--teal:#4fd1b8;--amber:#ffcf5c;--rose:#ff8a6b;--r:18px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:radial-gradient(1200px 700px at 15% -10%,#1b1f4a 0%,transparent 60%),radial-gradient(900px 600px at 100% 110%,#2a1740 0%,transparent 55%),var(--bg);color:var(--txt);display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 22px;border-bottom:1px solid var(--line);background:rgba(10,13,25,.6);backdrop-filter:blur(8px)}
+header .brand{font-weight:800;letter-spacing:.4px;font-size:15px}
+header .brand span{color:var(--teal)}
+header .count{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums}
+#aviso{display:none;margin:10px 22px 0;padding:10px 14px;border-radius:12px;background:#3a2a10;border:1px solid #7a5a1c;color:#ffe3a3;font-size:13.5px;line-height:1.45;align-items:flex-start;gap:10px}
+#aviso.show{display:flex}
+#aviso.ok{background:#0f2f2a;border-color:#1f6b5e;color:#b8f1e4}
+#aviso button{margin-left:auto;background:none;border:0;color:inherit;font-size:16px;cursor:pointer}
+main{flex:1;position:relative;min-height:0}
+.slide{position:absolute;inset:0;padding:22px 26px 12px;overflow-y:auto;overflow-x:hidden;transition:opacity .55s ease,transform .55s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;gap:14px}
+.enter-r{opacity:0;transform:translateX(46px)}.enter-l{opacity:0;transform:translateX(-46px)}
+.leave-l{opacity:0;transform:translateX(-46px);pointer-events:none}.leave-r{opacity:0;transform:translateX(46px);pointer-events:none}
+.meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cap{font-size:12.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--teal)}
+.badge{font-size:12.5px;font-weight:800;padding:5px 13px;border-radius:99px}
+.badge.rev{background:#ff8a4c;color:#1a1020}.badge.cap{background:#bfe8dd;color:#0d2a24}.badge.gab{background:#d8d2fa;color:#1b1540}
+h2{font-size:clamp(22px,3.1vw,44px);line-height:1.12;font-weight:800;letter-spacing:-.3px}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;flex:1;min-height:0}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px}
+.card h3{font-size:12.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:8px}
+.card p,.card li{font-size:clamp(14px,1.5vw,21px);line-height:1.45}
+.concept{--glow:var(--violet)}.concept h3{color:var(--violet)}
+.pts{--glow:var(--teal);flex:1}.pts h3{color:var(--teal)}
+.pts ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.pts li{padding:7px 12px;border-radius:12px;border-left:3px solid transparent}
+.alerta{--glow:var(--amber);flex:1.3;background:linear-gradient(180deg,rgba(255,207,92,.1),rgba(255,207,92,.03)),var(--card);border-color:#6b5520}.alerta h3{color:var(--amber)}
+.macete{--glow:var(--rose);background:linear-gradient(135deg,#2a1636,#3a1d2c);border-color:#6a2f46;display:flex;flex-direction:column;justify-content:center}.macete h3{color:#ffb86b}
+.macete p{font-weight:800;font-size:clamp(17px,2vw,28px);line-height:1.3}
+.r{transition:opacity .5s ease,filter .5s ease,box-shadow .5s ease,background .5s ease,border-color .5s ease}
+.pending{opacity:.2;filter:saturate(.35)}
+.done{opacity:.88}
+.active{opacity:1;filter:none}
+.card.active{box-shadow:0 0 0 1px var(--glow),0 0 34px -6px var(--glow)}
+li.active{background:rgba(79,209,184,.14);border-left-color:var(--teal);box-shadow:0 0 22px -8px var(--teal)}
+h2.active{text-shadow:0 0 24px rgba(167,139,250,.55)}
+@keyframes rise{from{transform:translateY(16px)}to{transform:none}}
+.in h2,.in .card,.in .pts li{animation:rise .65s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0ms)}
+b{color:#fff}
+.alerta b{color:#ffe9b0}
+#legenda{padding:10px 22px;min-height:68px;display:flex;align-items:center;justify-content:center;text-align:center;background:rgba(0,0,0,.35);border-top:1px solid var(--line);font-size:clamp(14px,1.45vw,20px);line-height:1.45;color:#f4f6ff}
+#legenda.idle{color:var(--mut)}
+footer{padding:10px 22px 14px;background:rgba(10,13,25,.85);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.ctrls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+button.b,select{background:#1a2042;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s,transform .1s}
+button.b:hover,select:hover{background:#232b5a}button.b:active{transform:scale(.97)}
+button.main{background:linear-gradient(135deg,#7c5cf0,#4fd1b8);border:0;color:#08101a}
+button.main:hover{filter:brightness(1.1)}
+.sp{flex:1}
+#bar{position:relative;height:14px;border-radius:99px;background:#1a2042;cursor:pointer;overflow:hidden;border:1px solid var(--line)}
+#fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#7c5cf0,#4fd1b8);border-radius:99px;transition:width .15s linear}
+#time{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;min-width:96px;text-align:right}
+select{max-width:230px}
+label.s{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.slide{padding:16px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header><div class="brand">ES1 · <span>Vídeo-aula interativa</span> · Capítulos 4, 5 e 6</div><div class="count" id="count"></div></header>
+<div id="aviso"><span id="avisoTxt"></span><button onclick="document.getElementById('aviso').classList.remove('show')" aria-label="Fechar aviso">✕</button></div>
+<main id="stage"></main>
+<div id="legenda" class="idle" aria-live="polite">Pressione Play (ou a barra de espaço) para ouvir a aula.</div>
+<footer>
+<div id="bar" role="slider" aria-label="Progresso da aula" tabindex="0"><div id="fill"></div></div>
+<div class="ctrls">
+<button class="b" id="bPrev">⏮ Voltar</button>
+<button class="b main" id="bPlay">▶ Play</button>
+<button class="b main" id="bPause" style="display:none">⏸ Pause</button>
+<button class="b" id="bNext">Avançar ⏭</button>
+<span class="sp"></span>
+<label class="s">Velocidade
+<select id="rate"><option value="1">1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option></select></label>
+<label class="s">Voz
+<select id="voz" title="Voz de narração"></select></label>
+<span id="time">0:00 / 0:00</span>
+</div>
+</footer>
+
+<script>
+/* ============ ÁUDIO PRONTO (opcional) ============
+   Para usar MP3 do ElevenLabs / Google Cloud TTS no lugar da voz do navegador,
+   preencha aqui o caminho/URL do arquivo de cada slide, pelo slideId. Ex.:
+   const AUDIO_URLS = { "manifesto": "audios/manifesto.mp3", "papeis": "https://.../papeis.mp3" };
+   Se o mp3 falhar ao carregar, a aula volta sozinha para a voz do navegador.
+   A "duracao" é estimada pelo texto e é corrigida com a duração real do MP3 ao carregar. */
+const AUDIO_URLS = {};
+
+/* ============ CONTEÚDO (somente capítulos 4, 5 e 6) ============ */
+const PRE_PTS = 'Pontos de memorização. ';
+function S(id,cap,badge,titulo,conceito,bullets,alerta,macete,extra){return Object.assign({id,cap,badge,titulo,conceito,bullets,alerta,macete,lbl:'🎯 Pontos de Memorização',pre:PRE_PTS},extra||{});}
+const C4A='Cap. 4 · Métodos Ágeis', C4X='Cap. 4 · Extreme Programming', C5S='Cap. 5 · Scrum', C5K='Cap. 5 · Kanban', C6='Cap. 6 · Estórias do Usuário';
+const RAW=[
+S('capa','Engenharia de Software I','cap','Guia de Memorização para a P1',
+ 'Bem-vindo à vídeo-aula de Engenharia de Software 1. Vamos revisar os capítulos 4, 5 e 6, com foco no que caiu na revisão do professor.',
+ ['**Capítulo 4**: Métodos Ágeis e Extreme Programming','**Capítulo 5**: Scrum e Kanban','**Capítulo 6**: Estórias do Usuário'],
+ 'Em cada slide, o alerta de prova mostra a questão da revisão ligada àquele conceito. Se o conceito não caiu na revisão, o alerta não aparece. No final há o gabarito das questões desses três capítulos.',
+ 'Ouvir, ler e repetir: memorizar é revisar em voz alta.',{lbl:'🗺️ O que vamos ver',pre:'O roteiro. '}),
+
+S('agil-trad',C4A,'rev','Ágil vs Tradicional: mapa de papel vs GPS',
+ 'O método tradicional é um mapa de papel: você planeja a viagem inteira antes de sair. O ágil é o GPS: recalcula a rota a cada curva, conforme a estrada muda.',
+ ['Tradicional **supõe prever o futuro** e vive de **burocracia**','Mede progresso pela **papelada**, não pelo **código**','Ágil: **entregas curtas e frequentes** com o cliente por perto','**Ágil não significa rápido**: ágil é astuto, evita desperdício e agrega valor','Mudança de requisito é **bem-vinda**'],
+ 'Q10: dizer que métodos ágeis valorizam processos e ferramentas acima de indivíduos e interações é FALSO (item 1), e dizer que é fácil prever quais requisitos vão perdurar também é FALSO (item 4). Q13: métodos ágeis são ciclos iterativos e incrementais, com participação do cliente (V).',
+ 'Tradicional prevê. Ágil adapta.'),
+
+S('manifesto',C4A,'rev','Manifesto Ágil: 4 valores, o da esquerda vale mais',
+ 'É a lista de prioridades de uma festa: a comida importa, mas o que faz a festa dar certo são as pessoas. O lado direito ainda existe, só vale menos. Foi assinado por 17 desenvolvedores em fevereiro de 2001.',
+ ['**Indivíduos e interações** valem mais que processos e ferramentas','**Software em funcionamento** vale mais que documentação abrangente','**Colaboração com o cliente** vale mais que negociação de contratos','**Responder a mudanças** vale mais que seguir um plano'],
+ 'Q1 listou os quatro valores como alternativas, e como todas são valores reais, a resposta provável é "Todas as alternativas". Q10 inverteu o primeiro valor, "processos e ferramentas acima de indivíduos e interações", para te pegar: FALSO.',
+ 'Gente, código, parceria, adaptação: o lado esquerdo sempre vence.'),
+
+S('principios',C4A,'rev','12 Princípios ágeis em 3 gavetas',
+ 'Em vez de decorar 12 frases, arrume como um guarda-roupa: CLIENTE, o que entrego; PESSOAS, quem faz; e TÉCNICA, como faço. A divisão em gavetas é um macete nosso.',
+ ['**Cliente** (1 a 4): entrega contínua, aceitar mudança, entregar sempre na menor escala, negócio e dev juntos todo dia','**Pessoas** (5, 6, 11, 12): equipe motivada, conversa **face a face**, **auto-organização**, refletir e melhorar','**Técnica** (7 a 10): software funcionando é a **medida de progresso**, ritmo **sustentável**, **excelência técnica**, **simplicidade**'],
+ 'Q13 e Q5 usam esses princípios: entrega incremental, feedback contínuo, colaboração intensa e envolvimento do cliente aparecem como verdadeiros nas questões de métodos ágeis.',
+ 'Cliente feliz, gente motivada, código funcionando.'),
+
+S('agil-dores',C4A,'rev','Onde o ágil dói',
+ 'Ágil é cozinha aberta: o cliente vê tudo e participa, o que é ótimo, se ele realmente aparecer na cozinha. Se ele some, o método sofre.',
+ ['Cliente pode **não querer se envolver**','Equipe pode **não ter perfil** para tanto envolvimento','**Priorizar** é difícil com vários clientes e interesses conflitantes','Simplicidade e excelência exigem **trabalho extra**, a refatoração','**Contratos** tradicionais combinam mal'],
+ 'Q12: o enunciado explica que os métodos ágeis "puros" não atendem gerentes de negócio, que precisam acompanhar andamento, orçamento e prioridades. Por isso foi desenvolvido o Scrum, com Scrum Master e Product Owner como interface com a organização.',
+ 'Ágil depende de gente: cliente presente, equipe madura.'),
+
+S('xp-visao',C4X,'rev','XP: qualidade extrema, ciclos curtos',
+ 'XP é um time de Fórmula 1 nos boxes: quase zero burocracia, tudo focado em trocar o pneu, o código, com qualidade, em dupla e com testes o tempo todo.',
+ ['Criado em **1999** por **Kent Beck**, no projeto **C3 Payroll**, da Chrysler','Para equipes **pequenas e médias**, com requisitos **vagos ou mutáveis**','Foco em **software de alta qualidade**, sem sobrecarga de processo','Entregas **rápidas e contínuas**, em ciclos curtos','Unidade de trabalho: a **estória do usuário**'],
+ 'Q3: o ciclo curto de 1 a 3 semanas do XP é a ITERAÇÃO, equivalente à sprint do Scrum. Q5, Q13 e Q16: XP é o método das práticas técnicas, como programação em pares, TDD, refatoração, integração contínua e posse coletiva.',
+ 'XP é código com capricho. Ciclo é iteração, não sprint.'),
+
+S('xp-valores',C4X,'cap','5 Valores do XP: C-S-F-C-R',
+ 'Valores são o porquê que motiva o time, como os valores de uma família. A hierarquia é: valores, que motivam; princípios, que são a base; e práticas, que são as ações concretas.',
+ ['**Comunicação**: prefira o **face a face**; conversa vale mais que videoconferência, telefone e e-mail','**Simplicidade**: só o **estritamente necessário**, hoje','**Feedback**: problema descoberto cedo causa **prejuízo menor**','**Coragem**: refatorar, mudar o design tarde e **dizer a verdade** sobre prazos','**Respeito**: todos têm valor e contribuem para o objetivo comum'],
+ null,'Casa Sem Fofoca Com Respeito: Comunicação, Simplicidade, Feedback, Coragem, Respeito.'),
+
+S('xp-principios',C4X,'cap','Princípios do XP: YAGNI e DRY',
+ 'Princípios são os trilhos entre valores e práticas. Numa cozinha: não cozinhe o que ninguém pediu, o YAGNI, e não escreva a mesma receita duas vezes, o DRY.',
+ ['**Feedback rápido**: trabalhe logo nos retornos recebidos','**Presumir simplicidade**: resolva o problema de hoje, com **YAGNI** e **DRY**','**Mudanças incrementais**: pequenos passos, olhando o retorno dos clientes','**Abraçar mudanças**: não as tema','**Trabalho de qualidade**: sempre buscar o melhor resultado'],
+ null,'YAGNI: se ninguém pediu hoje, não construa hoje.'),
+
+S('xp-mapa',C4X,'rev','As 12 práticas do XP em 3 grupos de 4',
+ 'Práticas são as ações concretas do dia a dia. Guarde como um time de futebol: planejamento é o técnico, código é o campo e equipe é o jogo coletivo. O agrupamento é um macete; o professor lista as 12 soltas.',
+ ['**Planejamento**: jogo do planejamento, pequenas versões, cliente presente, semana de 40 horas','**Código**: projeto simples, refatoração, padrões de codificação, metáfora','**Equipe e qualidade**: programação em pares, posse coletiva, integração contínua, teste contínuo com TDD'],
+ 'Q5: "refatoração contínua, propriedade coletiva e integração contínua NÃO são prescritas no Scrum" é V. Q13: testes antes do código é V. Q14: "Scrum sugere programação em pares" é F. Q16 trata de programação em pares.',
+ 'Planejar, Codificar, Colaborar: 3 grupos vezes 4 práticas dão 12.'),
+
+S('xp-planejamento',C4X,'rev','Jogo do Planejamento: iteração, não sprint',
+ 'É um rodízio em que o cliente escolhe os pratos da semana: no início de cada iteração, desenvolvedores e cliente priorizam as estórias e estimam prazos.',
+ ['Iterações curtas: **1 a 3 semanas**','**Jogo do Planejamento**: priorizar estórias e estimar prazos, com contrato de **escopo negociável**','**Pequenas versões**: estórias testadas e prontas para produção','**Cliente presente**: escreve estórias, tira dúvidas e define **testes de aceitação**','**Semana de 40 horas**, no máximo 45, e hora extra só por uma semana'],
+ 'Q3: ciclo curto de 1 a 3 semanas no XP é ITERAÇÃO (a). Q5: "o XP recomenda sprints de duração variável" é FALSO. Sprint é termo do Scrum; o XP usa iterações curtas, com escopo reavaliado a cada uma.',
+ 'XP não tem sprint. Tem iteração.'),
+
+S('xp-pares',C4X,'rev','Programação em Pares: piloto e copiloto',
+ 'Como piloto e copiloto num rali: um dirige, ou seja, codifica, e o outro lê o mapa, revisando e sugerindo melhorias. Os dois dividem o mesmo computador.',
+ ['**2 programadores**, **1 computador**, mesmo código','Um **codifica**, o outro **revisa** e sugere','Resultado: **mais qualidade** e conhecimento compartilhado','Custa cerca de **15% a mais** de tempo','Compensa em **projetos de longo prazo**'],
+ 'Q16: pares geram código melhor quando "elaboram e utilizam padrões de codificação conjuntamente" (a). As outras alternativas são armadilhas: testes em separado, só pequenas mudanças, geração automática de testes. Q14: "Scrum sugere programação em pares" é FALSO.',
+ 'Dois cérebros, um teclado: 15% mais tempo, menos bug.'),
+
+S('xp-tdd',C4X,'rev','TDD: teste primeiro, código depois',
+ 'É escrever o gabarito antes de resolver a prova: você já sabe o que é certo antes de começar e corrige na hora, em vez de descobrir o erro só no final.',
+ ['**TDD** significa Test-Driven Development','Testes **unitários escritos ANTES** do código','Dá **feedback imediato** sobre a qualidade','O cliente define os **testes de aceitação**','**Teste contínuo**: testes automatizados rodando o tempo todo'],
+ 'Q13 (V): "uma forte característica da XP é a garantia da qualidade do código, e para isso os desenvolvedores produzem testes automatizados antes mesmo de codificar". Q5 cita o TDD como prática técnica do XP.',
+ 'TDD: o teste nasce antes do código.'),
+
+S('xp-refat',C4X,'rev','Refatoração e Projeto Simples',
+ 'Refatorar é arrumar o quarto sem mudar o que tem nele: o sistema faz a mesma coisa, mas fica mais limpo e fácil de mexer.',
+ ['**Refatoração**: melhoria **contínua** do código','Elimina **duplicação** e funções inúteis, e aumenta **legibilidade e reuso**','Aumenta a **coesão** e diminui o **acoplamento**','**Projeto simples**: passa em **todos os testes**, sem duplicação e com poucas classes e métodos','O XP aposta que a **mudança é barata**'],
+ 'Q5 (V): "XP inclui refatoração contínua, propriedade coletiva do código e integração contínua, que não são prescritas no Scrum". A mesma questão traz a versão invertida, com o Scrum priorizando integração contínua e posse coletiva, que é FALSA.',
+ 'Refatorar: mesma função, código melhor.'),
+
+S('xp-integ',C4X,'rev','Integração Contínua e Posse Coletiva',
+ 'É um Google Docs em equipe: todo mundo edita o mesmo arquivo, sem dono, e as mudanças se juntam o tempo todo, em vez de montar tudo no último dia.',
+ ['**Integração contínua**: integrar a estória nova o **mais cedo possível**','Adiar gera mais **conflitos e erros** e esconde o **status real**','**Posse coletiva**: código **sem dono**, ninguém pede permissão','Objetivo: todos **conhecem todo o sistema**','**Metáfora** e **padrões de codificação**: nomes alinhados ao cliente e estilo único'],
+ 'Q5: integração contínua e posse coletiva são práticas do XP; "Scrum prioriza integração contínua e posse coletiva" é FALSO. Q16 (b) fala em propriedade coletiva, mas está errada ao dizer que os pares se limitam a pequenas mudanças.',
+ 'Integrou cedo, quebrou cedo, consertou barato.'),
+
+S('xp-ciclo',C4X,'rev','Ciclo de vida do XP: 5 fases',
+ 'É produzir um show: ideia, que é a Exploração; roteiro, o Planejamento; ensaios semanais, as Iterações; estreia, a Produção; e as temporadas seguintes, a Manutenção.',
+ ['**Exploração**: soluções, rascunho da arquitetura e **estórias iniciais**','**Planejamento**: estimar e escolher as estórias de **maior valor**','**Iterações**: testes, projeto e refatoração, código, testes e **integração**, com **reunião em pé** diária','**Produção**: **testes de aceitação** e lançamento','**Manutenção**: igual ao desenvolvimento, planejar, iterar e fazer pequenas versões'],
+ 'Q3 usou as fases do XP como pegadinha: Exploração, Planejamento e Produção são fases do XP, mas NENHUMA é o ciclo curto de 1 a 3 semanas. A resposta é Iteração. Leia o que a pergunta pede.',
+ 'E, P, I, P, M: Exploro, Planejo, Itero, Produzo, Mantenho.'),
+
+S('xp-naousar',C4X,'cap','Quando NÃO usar XP',
+ 'XP é esporte de equipe com regras próprias: se o cliente ou os desenvolvedores não toparem jogar do jeito certo, é melhor nem entrar em campo.',
+ ['Cliente que **não aceita as regras** ou quer **especificação detalhada** antes','**Contrato de escopo fechado**','Grupos **grandes**, com mais de **10** programadores','Feedback rápido **impossível** ou custo de mudança **exponencial**','Desenvolvedores que não seguem as regras'],
+ null,'XP: time pequeno, cliente parceiro, escopo negociável.'),
+
+S('scrum-visao',C5S,'rev','Scrum: framework leve em Sprints',
+ 'Scrum é um campeonato por rodadas: cada sprint é uma rodada curta com objetivo, jogo, avaliação e ajuste de tática antes da próxima.',
+ ['Publicado em **1995** por **Sutherland e Schwaber**','Método ágil, **iterativo e incremental**, de gestão de projetos','Composto por **papéis, eventos e artefatos**','**Não prescreve práticas de programação**, nada de pares ou TDD','Para produtos **complexos**, em ambientes complexos'],
+ 'Q11 (a) é a correta: framework ágil, simples e leve, com ciclos curtos chamados Sprints e os papéis Product Owner, Scrum Master e Time. As erradas: só o Scrum Master decide, planejamento fixo, entrega só no fim, sem reuniões. Q6 (V): o Scrum não define práticas técnicas e foca na gestão do trabalho e na entrega incremental.',
+ 'Scrum gerencia. XP programa.'),
+
+S('xp-vs-scrum',C5S,'rev','XP vs Scrum: engenheiro vs gerente',
+ 'Scrum é o gerente de obra, que organiza quem faz o quê e quando. XP é o mestre de obras, que ensina como assentar o tijolo com qualidade.',
+ ['**XP**: só **software**, com práticas de engenharia: **pares, TDD, refatoração e integração contínua**','**Scrum**: **gestão de projetos**, nem sempre de software, **sem** práticas de programação','**Scrum** tem papéis fixos e cerimônias; **XP** é menos formal','**Scrum**: sprints de até 1 mês · **XP**: iterações de 1 a 3 semanas','Em comum: entrega incremental, feedback contínuo e colaboração'],
+ 'Q5 inteira é isso: V, Scrum define papéis e cerimônias e XP prioriza TDD e pares. F, XP com sprints variáveis. V, XP tem refatoração, posse coletiva e integração contínua. F, Scrum prioriza integração contínua e posse coletiva. Q14: "Scrum sugere programação em pares" é F.',
+ 'Prática de CÓDIGO é XP. Prática de GESTÃO é Scrum.'),
+
+S('sprint',C5S,'rev','Sprint: o coração do Scrum',
+ 'Sprint é uma temporada de série: duração fixa, termina com um episódio pronto para exibir, o incremento, e a próxima começa logo em seguida.',
+ ['Período curto: **no máximo 1 mês**, com **duração fixa**','Gera um **incremento** utilizável e com valor para o cliente','Ao terminar, a **próxima começa imediatamente**','**Todos os eventos** do Scrum acontecem dentro da sprint','É a **iteração** do Scrum'],
+ 'Q6 (V): "o desenvolvimento é dividido em sprints, que normalmente possuem duração fixa e geram um incremento potencialmente utilizável". Q3: sprint do Scrum equivale à iteração do XP. Q2: não atingiu a meta da sprint? O evento certo é a Retrospectiva.',
+ 'Sprint: relógio fixo e incremento no final.'),
+
+S('papeis',C5S,'rev','Papéis: PO decide, SM destrava, Dev faz',
+ 'Num restaurante: o PO é o dono que decide o cardápio, o Scrum Master é o maître que tira obstáculos e cuida do ritmo, e os Developers são a cozinha que prepara.',
+ ['**Product Owner**: sempre **uma pessoa**; define e **prioriza** o backlog; visão de negócio; **aceita ou rejeita** resultados','**Scrum Master**: coach de autogestão, **remove impedimentos**, garante as práticas e o **time-box**','**Developers**: time **multidisciplinar** que gera o produto da sprint','PO e SM são a interface com a organização, mas **sem autoridade direta** sobre a equipe'],
+ 'Q12: o SM guia a equipe no Scrum (V); o PO garante foco no produto (V); "SM e PO têm autoridade direta sobre a equipe" é F. Q13: "o SM é responsável por gerenciar o Product Backlog" é F, quem gerencia é o PO. Q6: "o PO não participa da review nem interage com os devs" é F. Q11 (b), "decisões só do SM", está errada.',
+ 'Backlog é do PO. Obstáculo é do SM. Código é do Dev.'),
+
+S('eventos',C5S,'rev','Eventos do Scrum e seus time-boxes',
+ 'Eventos são como horários de aula: duração definida para ninguém se perder. Time-box é o relógio fixo que cria fluxo contínuo e mantém o foco.',
+ ['**Sprint**: máximo de **1 mês**','**Sprint Planning**: máximo de **8 horas**, define o Sprint Backlog','**Daily Scrum**: **15 minutos**, sincroniza e acha impedimentos','**Sprint Review**: máximo de **4 horas**, avalia o **produto**','**Sprint Retrospective**: máximo de **3 horas**, melhora o **processo**'],
+ 'Q8 (V, V, F, F): Planning é planejar a sprint (V); Daily tem 15 minutos (V); "Review é melhoria de processos" é F, isso é a Retro; "Retro é demonstração do trabalho" é F, isso é a Review. Q11 (e): "Scrum elimina reuniões" é falso.',
+ 'Tempos em ordem: 8 horas, 15 minutos, 4 horas, 3 horas: Planning, Daily, Review, Retro.'),
+
+S('review-retro',C5S,'rev','Review vs Retrospective: produto vs processo',
+ 'A Review é a vitrine: mostra o trabalho pronto ao cliente. A Retrospective é a conversa do time no vestiário depois do jogo: o que melhoramos no nosso jeito de jogar?',
+ ['**Review** olha o **PRODUTO**: apresenta e avalia os resultados da sprint','Na Review se decide a necessidade de **adaptações**','**Retro** olha o **PROCESSO**: o que foi bem, o que melhorar e quais ações','A Retro vem **depois** da Review','Time-box: Review de **4 horas**, Retro de **3 horas**'],
+ 'Q8 TROCA as definições, e as duas alternativas são F. Q2 pergunta qual evento analisa as causas da falha e faz um plano de melhoria: Retrospectiva (d), e NÃO a Review, a Daily ou o refinamento. Marque essas duas questões!',
+ 'Review olha o PRODUTO. Retro olha pelo retrovisor e melhora o PROCESSO.'),
+
+S('daily',C5S,'rev','Daily Scrum: 15 minutos da equipe',
+ 'É o aquecimento diário antes do jogo: rápido, todo mundo alinhado e já avisando o que está atrapalhando. Não é reunião de chefe cobrando relatório.',
+ ['Reunião **diária** de **15 minutos**, o time-box','Acompanha as tarefas e procura **impedimentos**','É da **equipe** e sincroniza atividades','**Não** é conduzida exclusivamente pelo Scrum Master','No XP, o equivalente é a **reunião em pé**'],
+ 'Q6: "Daily conduzida exclusivamente pelo Scrum Master" é FALSO, embora o começo da frase, reunião diária e rápida para sincronizar e identificar impedimentos, esteja certo. Q8: Daily de 15 minutos para sincronizar é V. Q2: a Daily NÃO é onde se cria o plano de melhoria da sprint.',
+ 'Daily: 15 minutos, alinhar e destravar.'),
+
+S('artefatos',C5S,'rev','Artefatos: Product Backlog, Sprint Backlog, Incremento',
+ 'O Product Backlog é o cardápio inteiro. O Sprint Backlog é o que a cozinha prometeu fazer nesta rodada. O Incremento é o prato pronto na mesa.',
+ ['**Product Backlog**: tudo desejado para o produto; cresce e muda; dono é o **PO**','**Sprint Backlog**: itens que o time **se compromete** a fazer na sprint','**Incremento**: soma dos itens **prontos**, o done, da sprint e das anteriores','O Incremento deve ser **utilizável**, mesmo que o PO não libere','**Scrum Board** e **Burndown**: ferramentas visuais de acompanhamento'],
+ 'Q20: os três artefatos são Product backlog, Sprint backlog e Incremento (c). Q9: o artefato que soma tudo concluído e deve estar "pronto" é o Incremento (a); "Definição de pronto" é o critério, não o artefato; "quadro kanban" é distrator. Q13: o Product Backlog é gerido pelo PO, e o SM é F.',
+ 'P, S, I: Product, Sprint, Incremento.'),
+
+S('fluxo',C5S,'rev','Scrum passo a passo',
+ 'É uma corrida de revezamento em voltas: cada passo passa o bastão ao próximo e, a cada volta, a sprint, o time ajusta a estratégia.',
+ ['1. O **PO** define o objetivo do produto com os **stakeholders** e monta o **Product Backlog**','2. **Sprint Planning**: objetivo da sprint e **Sprint Backlog**','3. **Daily Scrum** todo dia, durante a sprint','4. **Sprint Review**: apresenta os resultados e adapta','5. **Sprint Retrospective**: pontos fortes e fracos, e melhorias'],
+ 'Q2, Q8, Q9 e Q20 caem em passos deste fluxo. Memorize a ORDEM: Planning, Daily, Review, Retro. A Review sempre vem antes da Retro, e o Sprint Backlog nasce na Planning, a partir do Product Backlog priorizado pelo PO.',
+ 'P, D, R, R: Planeja, Diariamente alinha, Revisa o produto, Retrospecta o processo.'),
+
+S('scrum-prosecons',C5S,'rev','Scrum: vantagens e dores',
+ 'Scrum é academia em grupo: ótimo para ritmo e motivação, mas só funciona com gente comprometida e instrutor presente.',
+ ['✅ **Entregas incrementais**, adaptação fácil e **feedback rápido**','✅ **Transparência**, prioridade por valor e **equipe autônoma**','⚠️ **Prazo e custo total** difíceis de estimar, porque o escopo muda','⚠️ Exige **PO muito presente** e equipe **madura**','⚠️ Risco de virar **só cerimônia**, e de metas irreais gerarem pressão'],
+ 'Q14 (V): o Scrum adota entrega incremental em sprints e envolve o cliente por meio da negociação e priorização dos requisitos. Q12 dá o contexto: o Scrum surgiu porque gerentes de negócio precisam acompanhar andamento e prioridades.',
+ 'Scrum funciona com PO presente e time maduro.'),
+
+S('kanban-visao',C5K,'rev','Kanban vs Scrum: fluxo contínuo vs ciclos',
+ 'Scrum é aula com horário marcado, as sprints. Kanban é buffet self-service: o fluxo é contínuo e cada um puxa o próximo prato quando tem espaço.',
+ ['Origem na **Toyota**, anos 1940; em software, **David Anderson**, em **2004**, na Microsoft','Kanban: **sem sprint**, fluxo contínuo, entrega contínua ou a critério do time','Kanban: **sem papéis e eventos obrigatórios**; só **1 artefato**, o quadro','Scrum: **sprint, papéis, eventos e artefatos**','Ambos podem usar **estórias do usuário**'],
+ 'Q13 (V): "o quadro Kanban permite monitorar a evolução das tarefas e acompanhar visualmente as atividades em construção". Q18 e Q21 giram em torno do limite de WIP do Kanban, nos próximos slides. Q9: "quadro kanban" é distrator para Incremento.',
+ 'Scrum é ciclo. Kanban é fluxo.'),
+
+S('kanban-quadro',C5K,'rev','Quadro Kanban: colunas e puxar',
+ 'É um mural de post-its em que cada cartão anda da esquerda para a direita, como peças numa esteira de fábrica. Quem tem espaço livre puxa o próximo.',
+ ['**1ª coluna**: Backlog, com as **estórias do usuário**','Demais colunas são os **passos do processo**, definidos pelo time','Cada coluna tem **Em execução** e **Concluída**','O time **puxa** tarefas: cada membro decide qual vai ao próximo passo','Cada membro deve saber fazer **todos os passos**'],
+ 'Q13 cobra o quadro como ferramenta visual para acompanhar as atividades em construção (V). Cuidado para não misturar o Scrum Board, da sprint, com o quadro Kanban, único artefato do Kanban.',
+ 'Puxar, não empurrar.'),
+
+S('wip',C5K,'rev','WIP: pare de começar, comece a terminar',
+ 'WIP é a lotação máxima do elevador: se entrar gente demais, ninguém chega rápido. Limitar o trabalho em andamento faz as tarefas fluírem até o fim.',
+ ['**WIP** significa Work In Progress: **limite máximo de cartões** por passo','Evita **sobrecarga** e a troca constante de tarefa','Quanto mais itens em andamento, **maior o tempo de entrega**','Equilibra o ritmo da equipe','Lema: **"Pare de começar e comece a terminar"**'],
+ 'Q18 (d) é WIP. As outras siglas, WCL, WLC, WLB e WIPT, não existem. Q21, a discursiva: o objetivo principal do limite de WIP é evitar sobrecarga da equipe, reduzir o tempo de entrega e equilibrar o fluxo de trabalho. Responda com essas três ideias.',
+ 'Menos coisa começada, mais coisa terminada.'),
+
+S('wip-calculo',C5K,'cap','Calculando o WIP: LT vezes TP',
+ 'É a conta do tamanho da fila: quanto mais tempo cada cliente fica no guichê, o LT, e mais rápido o guichê atende, o TP, mais gente cabe na fila sem travar.',
+ ['1. **LT**, lead time: tempo médio da tarefa em cada passo','2. **TP**, throughput: tarefas por dia do passo de **maior LT**, por exemplo 8 ÷ 22 = **0,36**','3. **WIP = LT × TP** para cada passo','Exemplo: Especificação 5 × 0,36 ≈ **2**; Implementação 12 × 0,36 ≈ **5**; Revisão 6 × 0,36 ≈ **2**','Algoritmo de **Eric Brechner**; as "Concluídas" da última coluna **não contam**'],
+ null,'WIP é igual a LT vezes TP: tempo no passo vezes velocidade de saída.'),
+
+S('kanban-praticas',C5K,'rev','As 6 Práticas do Kanban',
+ 'É organizar uma cozinha: ver tudo que está no fogo, limitar quantas panelas, combinar as regras, medir o tempo, ouvir feedback e ajustar aos poucos.',
+ ['**1. Visualize** o fluxo e **2. Limite o WIP**','**3. Políticas explícitas**: governam o comportamento do time','**4. Meça e gerencie** o fluxo: pare de estimar, comece a medir','**5. Feedback**, por meio das cadências, e **6. Melhore** colaborativamente','Evolução **experimental**: pequenas mudanças, menos resistência'],
+ 'Q18 e Q21 vêm da prática 2, limite o WIP. Frases do professor que viram resposta: "Pare de começar e comece a terminar", "o que pode ser medido, pode ser melhorado" e "feedback não é uma opção, é uma obrigação da gestão".',
+ 'Vamos Limitar Pra Melhorar Fluxo, Mesmo!'),
+
+S('kanban-cadencias',C5K,'cap','Cadências Kanban: 7 reuniões',
+ 'Cadências são os horários fixos do Kanban. Quanto mais estratégico o assunto, mais espaçada a reunião: diária, semanal, mensal, trimestral.',
+ ['**Diária**: Daily Kanban, com fluxo, bloqueios e próximos itens','**Semanal**: Replenishment, o que entra, e Delivery Planning, o que entrega','**Semanal ou quinzenal**: Service Delivery Review','**Mensal**: Operations Review e Risk Review','**Trimestral**: Strategy Review'],
+ null,'Quanto mais estratégico, mais espaçado.'),
+
+S('us-vs-uc',C6,'rev','Caso de Uso vs Estória do Usuário',
+ 'Caso de uso é o manual completo da receita, passo a passo. Estória é o bilhete na geladeira: quero lanche rápido para não passar fome. O detalhe vem na conversa.',
+ ['**Caso de uso**: interação **sistema e atores**, com fluxo principal, alternativos, exceção, pré e pós-condições e regras','**Estória**: descrição **curta, simples e informal** de uma necessidade','Estória é a **unidade básica de trabalho** dos métodos ágeis','Pode ser **parte** de um objetivo maior do cliente'],
+ 'Q7 cobra a estória na prática: a boa estória fica na perspectiva do usuário final, com quem, o quê e por quê, sem detalhes técnicos (e). Q13: o Product Backlog é a lista de funcionalidades desejadas pelo cliente, onde as estórias moram.',
+ 'Caso de uso detalha o COMO. Estória lembra o PORQUÊ.'),
+
+S('us-formato',C6,'rev','Formato da estória: Quem, O quê, Porquê',
+ 'É um pedido de lanchonete: quem pede, o cliente; o que pede, um X-burguer; e por quê, fome antes da prova. Sem falar como a chapa funciona.',
+ ['**Como um** papel, que é o **QUEM**','**Eu quero** uma ação, que é o **O QUÊ**','**Para** um benefício, que é o **PORQUÊ**','O formato **não é obrigatório**, mas é o mais usado','Exemplo: "Como **contribuinte**, quero **receber notificação de vencimento** para **pagar antes da data-limite**"'],
+ 'Q7: a narrativa do contribuinte é uma boa estória. Correta (e): perspectiva do usuário final, quem, o quê e porquê, sem detalhes técnicos. Erradas: especificar e-mail, SMS ou push (a); tabelas do banco (b); todos os requisitos funcionais e não funcionais (c); SMTP ou serviço externo (d).',
+ 'Quem? O quê? Porquê? Sem tecnologia!'),
+
+S('us-detalhes',C6,'rev','Regras finas: QUEM, O QUÊ, PORQUÊ',
+ 'É como uma boa pergunta de prova: precisa ser precisa. Administrar perfil é vago; trocar a foto do perfil é um ponto de chegada claro.',
+ ['**QUEM**: quase sempre usuário; raramente pode ser **outro sistema**','**O QUÊ**: **precisão**; busque a **estória fechada**, com ponto de chegada claro','**PORQUÊ**: benefício ou objetivo de **negócio**, do usuário ou da empresa','Se o PORQUÊ só **repete o O QUÊ**, pode omitir'],
+ 'Reforça a Q7: estória boa foca no valor para o usuário. Detalhar tecnologia, tabelas ou método de envio vai contra as letras V e N do INVEST. O texto diz O QUÊ e PORQUÊ; o COMO se discute na conversa.',
+ 'Estória boa tem destino claro e motivo real.'),
+
+S('us-3cs',C6,'cap','Os 3 Cs: Cartão, Conversa, Confirmação',
+ 'Pense numa encomenda de bolo: o cartão é o pedido anotado, a conversa é você explicar o gosto do cliente, e a confirmação é a prova final: está do jeito que pedi?',
+ ['**Cartão**: a descrição da estória, em post-it físico ou virtual','**Conversa**: entender a fundo e definir a solução; o que for decidido vai anexado ao cartão','**Confirmação**: os **critérios de aceitação**','Estória **não é especificação**: é necessidade a ser atendida','Os critérios são **mais detalhados** que a própria estória'],
+ null,'Cartão registra, Conversa detalha, Confirmação prova.'),
+
+S('invest1',C6,'rev','INVEST (1 de 2): I, N, V',
+ 'INVEST é o checklist de qualidade da estória, como os selos de uma boa embalagem: cada letra é um selo que ela precisa ter antes de ir para a sprint.',
+ ['**I, Independent**: não depende de outra, o que facilita estimar e priorizar','**N, Negotiable**: ponto de partida para a conversa. **Necessidade não é solução**','**V, Valuable**: valor para o **cliente**, em **linguagem de negócio**','Valor só técnico, como pool de conexões ou interface para mockups, é **mau exemplo**'],
+ 'A Q7 mora aqui. As alternativas a, b e d, método de envio, tabelas do banco e SMTP, enfiam SOLUÇÃO e TECNOLOGIA na estória, violando Negotiable e Valuable. A alternativa c, com todos os requisitos, viola também o tamanho. Correta: (e).',
+ 'Independente, Negociável, de Valor: nada de tecnologia na estória.'),
+
+S('invest2',C6,'rev','INVEST (2 de 2): E, S, T',
+ 'É a mochila de viagem: dá para pesar, que é Estimável; cabe na mala, que é Small; e dá para conferir se chegou inteira ao destino, que é Testável.',
+ ['**E, Estimable**: não dá para estimar se faltar **domínio**, faltar **solução técnica** ou a estória for **grande demais**','**S, Small**: se for grande, **quebrar**; não passa de **uma sprint**','**T, Testable**: **critérios de aceitação objetivos**','Pergunta de ouro: **"Como vamos verificar se funciona?"**'],
+ 'Q7 (c): uma estória que "contém todos os requisitos funcionais e não funcionais, incluindo desempenho, tempo de resposta e segurança" fica grande e rígida demais, violando o S de Small e o N de Negotiable. A boa estória é curta e deixa detalhes para a conversa.',
+ 'I N V E S T: Independente, Negociável, Valiosa, Estimável, Small, Testável.'),
+
+S('us-hierarquia',C6,'cap','Iniciativa, Tema, Épico, Estória e Tarefa',
+ 'Como uma série: a iniciativa é a franquia, o épico é a temporada, a estória é o episódio e a tarefa é uma cena filmada. O tema agrupa episódios parecidos.',
+ ['**Iniciativa**: agrupa **épicos** ligados a um objetivo **estratégico** de longo prazo','**Épico**: estória grande quebrada em menores; o valor só chega quando **todo o épico** está pronto','**Tema**: estórias **correlatas, porém independentes**','**Estória**: traz valor ao negócio','**Tarefa**: passo técnico, de **baixo valor** isolado'],
+ null,'Da estratégia à execução: Iniciativa, Tema, Épico, Estória, Tarefa.'),
+
+S('us-quebrar',C6,'cap','7 jeitos de quebrar uma estória',
+ 'É cortar uma pizza gigante: dá para cortar por sabor, por borda ou por tamanho da fatia. O que importa é cada pedaço caber na sprint.',
+ ['**Múltiplos objetivos** e **Spike**, que é um experimento ou prova de conceito','**Caminhos**, como ler o código de barras ou digitar, e **Interfaces**, como smartphone ou smartwatch','**Dados**, como cliente pessoa física e jurídica, e **Regras**, relaxando e implementando aos poucos','**Critérios de aceitação**: uma estória por critério'],
+ null,'O Sapo Come Insetos, Dorme, Relaxa, Canta: Objetivos, Spike, Caminhos, Interfaces, Dados, Regras, Critérios.'),
+
+S('us-descobrir',C6,'cap','De onde vêm as estórias',
+ 'É descobrir o que um cliente quer num restaurante: observar quem ele é, a persona; o que o incomoda, os problemas; o dia dele, a jornada; e o processo todo.',
+ ['**Personas**: pessoa fictícia que representa um grupo de usuários','**Problemas**: descubra a dor e derive as soluções','**Jornada do cliente**: um dia na vida, que gera **empatia** e ideias de alto nível','**Processos de negócio**: **todas as variações**, incluindo exceções e caminhos infelizes','**Decomposição**: quebrar blocos funcionais até virar estória'],
+ null,'Jornada é visão de cima. Processo é detalhe e exceção.'),
+
+S('gab1','Gabarito · Capítulos 4 e 5','gab','Gabarito comentado (1 de 2)',
+ null,
+ ['**Q1** – e (todas as alternativas): todos são valores do manifesto','**Q2** – d: Retrospectiva da Sprint','**Q3** – a: Iteração','**Q5** – V, F, V, F','**Q6** – V, F, F, V','**Q8** – V, V, F, F, porque Review e Retro estão trocadas','**Q9** – a: Incremento','**Q10**, itens sobre o ágil – item 1: F; item 4: F'],
+ 'O enunciado da Q1 perdeu a figura, então "e" é inferido. Vale confirmar com o professor.',
+ 'Errou? Volte ao slide do tema e refaça a questão.',{lbl:'✅ Respostas',pre:'Respostas. '}),
+
+S('gab2','Gabarito · Capítulos 5 e 6','gab','Gabarito comentado (2 de 2)',
+ null,
+ ['**Q7** – e: quem, o quê e porquê, sem detalhe técnico','**Q11** – a: framework leve, Sprints e três papéis','**Q12** – V, V, F','**Q13** – V, V, F, V','**Q14** – V, F, V','**Q16** – a: padrões de codificação conjuntos','**Q18** – d: WIP','**Q20** – c: Product backlog, Sprint backlog e Incremento','**Q21**: evitar sobrecarga, reduzir o tempo de entrega e equilibrar o fluxo'],
+ null,'Questão 21 em 3 palavras: sobrecarga, entrega, fluxo.',{lbl:'✅ Respostas',pre:'Respostas. '})
+];
+
+/* ============ ESTRUTURA DA NARRAÇÃO ============
+   AULA = [{ slideId, textoLegenda, audioUrl, duracao, segmentos:[{alvo,texto,dur}] }]
+   textoLegenda: legenda completa do slide | audioUrl: MP3 opcional | duracao: segundos (estimada) */
+const plain=t=>String(t).replace(/\*\*/g,'');
+let AULA=[];
+function buildAula(){
+  AULA=RAW.map(s=>{
+    const g=[{alvo:'titulo',texto:plain(s.titulo)}];
+    if(s.conceito)g.push({alvo:'conceito',texto:'Conceito central. '+plain(s.conceito)});
+    s.bullets.forEach((b,k)=>g.push({alvo:'b'+k,texto:(k===0?s.pre:'')+plain(b)}));
+    if(s.alerta)g.push({alvo:'alerta',texto:'Alerta de prova. '+plain(s.alerta)});
+    g.push({alvo:'macete',texto:'Macete. '+plain(s.macete)});
+    g.forEach(x=>x.dur=Math.max(1.5,x.texto.split(/\s+/).length/2.7));
+    return{slideId:s.id,textoLegenda:g.map(x=>x.texto).join(' '),audioUrl:AUDIO_URLS[s.id]||'',duracao:g.reduce((a,x)=>a+x.dur,0),segmentos:g,raw:s};
+  });
+}
+/* pronúncia: só para a voz; a legenda mostra o texto original */
+const PRON=[[/\bQ(\d+)\b/g,'questão $1'],[/\bV\b/g,'verdadeiro'],[/\bF\b/g,'falso'],[/–\s([a-e])\b/g,'– alternativa $1'],[/→/g,', leva a, '],[/≠/g,' é diferente de '],[/×/g,' vezes '],[/÷/g,' dividido por '],[/≈/g,' aproximadamente '],[/%/g,' por cento'],[/[✅⚠️]/g,''],
+[/\bScrum\b/gi,'Escrâm'],[/\bSprints\b/gi,'Esprínts'],[/\bSprint\b/gi,'Esprínt'],[/\bKanban\b/gi,'Camban'],[/\bBacklog\b/gi,'Béquilogue'],[/\bDaily\b/gi,'Dêili'],[/\bReview\b/gi,'Revíu'],[/\bRetro\b/gi,'Rétro'],[/\bRetrospective\b/gi,'Retrospéctiv'],[/\bWIP\b/g,'uíp'],[/\bPO\b/g,'P O'],[/\bSM\b/g,'S M'],[/\bXP\b/g,'X P'],[/\bTDD\b/g,'T D D'],[/\bYAGNI\b/g,'iágni'],[/\bDRY\b/g,'drái'],[/\bINVEST\b/g,'invést'],[/\bSpike\b/gi,'espáique'],[/\bTP\b/g,'T P'],[/\bLT\b/g,'L T'],[/\bUI\b/g,'U I'],[/\bBeck\b/g,'Béc'],[/\bstakeholders\b/gi,'estêiqueholders'],[/\bburndown\b/gi,'bãrndaun'],[/\bWork In Progress\b/gi,'Uork In Prógres'],[/\bTest-Driven Development\b/gi,'Tést Drívn Devélopment'],[/\bUC\b/g,'U C'],[/\bPF\b/g,'P F']];
+const norm=t=>PRON.reduce((a,[r,x])=>a.replace(r,x),t);
+
+/* ============ ESTADO E UTILIDADES ============ */
+const $=s=>document.querySelector(s);
+const stage=$('#stage'),leg=$('#legenda');
+const st={i:0,seg:0,playing:false,rate:1,token:0,segStart:0,timer:null,voice:null,voices:[],u:null};
+const audio=new Audio();audio.preload='auto';
+const HAS_TTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
+let cum=[],TOTAL=0;
+const md=t=>String(t).replace(/&/g,'&amp;').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const fmt=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function timeline(){cum=[];let t=0;AULA.forEach(a=>{cum.push(t);t+=a.duracao});TOTAL=t}
+const segOff=(a,k)=>a.segmentos.slice(0,k).reduce((x,g)=>x+g.dur,0);
+
+/* ============ RENDER ============ */
+function slideHTML(a){
+  const s=a.raw;let d=0;const dl=()=>`style="--d:${(d++)*80}ms"`;
+  const badge=s.badge==='rev'?'<span class="badge rev">🔥 Caiu na revisão</span>':s.badge==='gab'?'<span class="badge gab">✅ Gabarito</span>':'<span class="badge cap">📘 Só no capítulo</span>';
+  let h=`<div class="meta"><span class="cap">${s.cap}</span>${badge}</div>`;
+  h+=`<h2 class="r" data-t="titulo" ${dl()}>📌 ${md(s.titulo)}</h2><div class="grid"><div class="col">`;
+  if(s.conceito)h+=`<section class="card concept r" data-t="conceito" ${dl()}><h3>💡 Conceito Central &amp; Analogia</h3><p>${md(s.conceito)}</p></section>`;
+  h+=`<section class="card pts"><h3>${s.lbl}</h3><ul>${s.bullets.map((b,k)=>`<li class="r" data-t="b${k}" ${dl()}>${md(b)}</li>`).join('')}</ul></section></div><div class="col">`;
+  if(s.alerta)h+=`<section class="card alerta r" data-t="alerta" ${dl()}><h3>⚠️ Alerta de Prova (Revisão)</h3><p>${md(s.alerta)}</p></section>`;
+  h+=`<section class="card macete r" data-t="macete" ${dl()}><h3>🧠 Gatilho Mental / Macete</h3><p>${md(s.macete)}</p></section></div></div>`;
+  return h;
+}
+function renderSlide(i,dir){
+  const old=stage.querySelector('.slide:not(.leaving)');
+  const el=document.createElement('div');
+  el.className='slide in '+(dir===0?'':dir>0?'enter-r':'enter-l');
+  el.innerHTML=slideHTML(AULA[i]);stage.appendChild(el);
+  if(old){old.classList.add('leaving',dir>=0?'leave-l':'leave-r');setTimeout(()=>old.remove(),600)}
+  void el.offsetWidth;el.classList.remove('enter-r','enter-l');
+  $('#count').textContent=`Slide ${i+1} de ${AULA.length}`;
+}
+function applyStates(mode){
+  const a=AULA[st.i],order=a.segmentos.map(g=>g.alvo);
+  stage.querySelectorAll('.slide:not(.leaving) .r').forEach(el=>{
+    el.classList.remove('pending','active','done');
+    if(mode==='idle')return;
+    const k=order.indexOf(el.dataset.t);
+    el.classList.add(k<st.seg?'done':k===st.seg?'active':'pending');
+    if(k===st.seg)el.scrollIntoView({block:'nearest',behavior:'smooth'});
+  });
+}
+function setCaption(){const g=AULA[st.i].segmentos[st.seg];leg.classList.remove('idle');leg.textContent=g.texto}
+function setUI(){$('#bPlay').style.display=st.playing?'none':'';$('#bPause').style.display=st.playing?'':'none'}
+function bar(){
+  const a=AULA[st.i];let pos;
+  if(st.playing&&a.audioUrl&&!a.falhou&&audio.duration)pos=cum[st.i]+audio.currentTime/audio.duration*a.duracao;
+  else{const g=a.segmentos[st.seg];const el=st.playing?Math.min(g.dur,(performance.now()-st.segStart)/1000*st.rate):0;pos=cum[st.i]+segOff(a,st.seg)+el}
+  $('#fill').style.width=(TOTAL?pos/TOTAL*100:0)+'%';$('#time').textContent=fmt(pos)+' / '+fmt(TOTAL);
+}
+setInterval(bar,150);
+
+/* ============ NAVEGAÇÃO ============ */
+function stopAll(){st.token++;clearTimeout(st.timer);audio.pause();if(HAS_TTS)speechSynthesis.cancel()}
+function goTo(i,seg,fromAuto){
+  i=Math.max(0,Math.min(AULA.length-1,i));
+  const dir=i===st.i?0:(i>st.i?1:-1);
+  stopAll();
+  if(dir!==0)renderSlide(i,dir);
+  st.i=i;st.seg=Math.max(0,Math.min(AULA[i].segmentos.length-1,seg||0));
+  applyStates(st.playing?'play':'idle');
+  if(st.playing){setTimeout(startPlayback,dir!==0?350:60)}else{leg.classList.add('idle');leg.textContent='Pressione Play (ou a barra de espaço) para ouvir a aula.'}
+  bar();
+}
+function play(){if(st.playing)return;if(st.i===AULA.length-1&&st.seg>=AULA[st.i].segmentos.length)goTo(0,0);st.playing=true;setUI();startPlayback()}
+function pause(){st.playing=false;stopAll();setUI();bar()}
+function finish(){st.playing=false;stopAll();setUI();leg.classList.remove('idle');leg.textContent='Aula concluída. Bons estudos e boa prova!';stage.querySelectorAll('.slide:not(.leaving) .r').forEach(e=>e.classList.remove('pending','active'))}
+
+/* ============ REPRODUÇÃO ============ */
+function startPlayback(){
+  if(!st.playing)return;
+  const a=AULA[st.i];
+  if(a.audioUrl&&!a.falhou)playAudio(a);else speakSeg();
+}
+function segEnd(){
+  st.seg++;
+  const a=AULA[st.i];
+  if(st.seg>=a.segmentos.length){
+    if(st.i+1>=AULA.length){finish();return}
+    const t=st.token;
+    st.timer=setTimeout(()=>{if(t===st.token&&st.playing)goTo(st.i+1,0,true)},550);
+  }else{applyStates('play');speakSeg()}
+}
+function speakSeg(){
+  const a=AULA[st.i],g=a.segmentos[st.seg];
+  stopAll();const t=st.token;
+  setCaption();applyStates('play');st.segStart=performance.now();
+  const done=()=>{if(t!==st.token||!st.playing)return;clearTimeout(st.timer);segEnd()};
+  if(!HAS_TTS||!st.voice){st.timer=setTimeout(done,g.dur*1000/st.rate);return}
+  setTimeout(()=>{
+    if(t!==st.token)return;
+    const u=new SpeechSynthesisUtterance(norm(g.texto));
+    u.lang='pt-BR';u.voice=st.voice;u.rate=st.rate;
+    u.onend=done;
+    u.onerror=e=>{if(e.error==='canceled'||e.error==='interrupted')return;done()};
+    st.u=u;speechSynthesis.speak(u);
+    st.timer=setTimeout(done,(g.dur*3+4)*1000/st.rate); /* guarda contra onend perdido */
+  },70);
+}
+function playAudio(a){
+  stopAll();const t=st.token;
+  const chars=a.segmentos.map(g=>g.texto.length),sum=chars.reduce((x,y)=>x+y,0);
+  const starts=[];chars.reduce((acc,c)=>{starts.push(acc/sum);return acc+c},0);
+  const seekTo=()=>{if(audio.duration)audio.currentTime=starts[st.seg]*audio.duration};
+  audio.onloadedmetadata=()=>{if(t!==st.token)return;a.duracao=audio.duration;timeline();seekTo()};
+  audio.ontimeupdate=()=>{
+    if(t!==st.token||!audio.duration)return;
+    const f=audio.currentTime/audio.duration;let k=0;
+    while(k+1<starts.length&&f>=starts[k+1])k++;
+    if(k!==st.seg){st.seg=k;setCaption();applyStates('play')}
+  };
+  audio.onended=()=>{if(t!==st.token)return;st.seg=a.segmentos.length-1;if(st.i+1>=AULA.length)finish();else setTimeout(()=>{if(t===st.token&&st.playing)goTo(st.i+1,0,true)},500)};
+  audio.onerror=()=>{if(t!==st.token)return;a.falhou=true;aviso('Não consegui carregar o MP3 do slide "'+a.slideId+'". Usando a voz do navegador neste slide.');speakSeg()};
+  audio.src=a.audioUrl;audio.playbackRate=st.rate;
+  setCaption();applyStates('play');
+  if(audio.readyState>=1)seekTo();
+  audio.play().catch(()=>{if(t===st.token){a.falhou=true;speakSeg()}});
+}
+
+/* ============ VOZES ============ */
+function aviso(msg,ok){const b=$('#aviso');$('#avisoTxt').textContent=msg;b.classList.toggle('ok',!!ok);b.classList.add('show')}
+const natural=v=>/Francisca|Online|Natural|Google/i.test(v.name);
+function score(v){let s=0;if(/pt[-_]BR/i.test(v.lang))s+=100;if(/Francisca/i.test(v.name))s+=60;if(/Online|Natural/i.test(v.name))s+=40;if(/Google/i.test(v.name))s+=30;if(/Microsoft|Luciana|Felipe/i.test(v.name))s+=10;return s}
+function loadVoices(){
+  if(!HAS_TTS)return;
+  const pt=speechSynthesis.getVoices().filter(v=>/^pt/i.test(v.lang)).sort((a,b)=>score(b)-score(a));
+  if(!pt.length&&!st.voices.length){return}
+  st.voices=pt;
+  let saved=null;try{saved=localStorage.getItem('voz-es1')}catch(e){}
+  st.voice=pt.find(v=>v.name===saved)||pt[0]||null;
+  const sel=$('#voz');sel.innerHTML=pt.map(v=>`<option value="${v.name}">${v.name}${natural(v)?' ✨':''}</option>`).join('');
+  if(st.voice)sel.value=st.voice.name;
+  if(!st.voice)aviso('Nenhuma voz em português foi encontrada neste navegador. A aula roda só com legendas (ritmo estimado). Use o Microsoft Edge (voz "Francisca Online"), o Chrome (voz Google) ou preencha AUDIO_URLS com MP3s.');
+  else if(!natural(st.voice))aviso('Só encontrei voz local (provavelmente robótica): "'+st.voice.name+'". Para voz natural, abra no Microsoft Edge (Francisca Online) ou no Chrome (voz Google), ou preencha AUDIO_URLS com MP3s do ElevenLabs ou Google Cloud TTS.');
+  else aviso('Voz natural selecionada: '+st.voice.name+' ✨',true);
+}
+$('#voz').onchange=e=>{st.voice=st.voices.find(v=>v.name===e.target.value)||st.voice;try{localStorage.setItem('voz-es1',e.target.value)}catch(_){}if(st.playing)goTo(st.i,st.seg)};
+
+/* ============ CONTROLES ============ */
+$('#bPlay').onclick=play;$('#bPause').onclick=pause;
+$('#bNext').onclick=()=>goTo(st.i+1,0);$('#bPrev').onclick=()=>goTo(st.seg>1?st.i:st.i-1,0);
+$('#rate').onchange=e=>{st.rate=parseFloat(e.target.value);audio.playbackRate=st.rate;if(st.playing)goTo(st.i,st.seg)};
+$('#bar').addEventListener('click',e=>{
+  const r=e.currentTarget.getBoundingClientRect(),t=Math.max(0,Math.min(.9999,(e.clientX-r.left)/r.width))*TOTAL;
+  let i=0;while(i+1<AULA.length&&cum[i+1]<=t)i++;
+  const a=AULA[i];let rel=t-cum[i],k=0;
+  while(k+1<a.segmentos.length&&rel>=a.segmentos[k].dur){rel-=a.segmentos[k].dur;k++}
+  goTo(i,k);
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='SELECT')return;
+  if(e.code==='Space'){e.preventDefault();st.playing?pause():play()}
+  else if(e.key==='ArrowRight')goTo(st.i+1,0);
+  else if(e.key==='ArrowLeft')goTo(st.i-1,0);
+});
+
+/* ============ INÍCIO ============ */
+buildAula();timeline();renderSlide(0,0);bar();
+if(HAS_TTS){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;let n=0;const iv=setInterval(()=>{if(st.voices.length||++n>10)clearInterval(iv);else loadVoices()},400)}
+else aviso('Este navegador não tem síntese de voz. A aula roda só com legendas (ritmo estimado).');
+</script>
+<script src="bridge.js"></script>
+</body>
+</html>

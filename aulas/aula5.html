@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aula 5 · Resolução das questões (gabarito comentado)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400..800&family=Space+Grotesk:wght@500..700&display=swap">
+<style>
+:root {
+  --bg: #090D1A;
+  --bg2: #0F1528;
+  --panel: #141B30;
+  --panel2: #1A2340;
+  --line: #27314F;
+  --text: #E8ECF6;
+  --muted: #9AA6C2;
+  --blue: #7AA7FF;
+  --hot: #FF8A4C;
+  --hot-deep: #C2410C;
+  --gold: #FFC857;
+  --glow: 0 0 0 2px rgba(122,167,255,.85), 0 0 34px rgba(122,167,255,.35);
+  --glow-hot: 0 0 0 2px rgba(255,138,76,.9), 0 0 34px rgba(255,138,76,.35);
+  --glow-gold: 0 0 0 2px rgba(255,200,87,.9), 0 0 34px rgba(255,200,87,.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: radial-gradient(1200px 600px at 20% -10%, #18224A 0%, transparent 60%), var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  display: flex; flex-direction: column; align-items: center;
+  overflow-x: hidden;
+}
+button, select { font: inherit; color: inherit; }
+
+/* ---------- Palco 16:9 ---------- */
+.app { width: 100%; max-width: 1600px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.stage-wrap { width: min(100%, calc((100vh - 262px) * 16 / 9)); min-width: min(100%, 320px); }
+.stage {
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  background: linear-gradient(160deg, var(--bg2), #0A0F1F 70%);
+  border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,.45);
+}
+.slide {
+  position: absolute; inset: 0; padding: 3.2cqw 4.2cqw 3cqw;
+  display: flex; flex-direction: column; gap: 1.4cqw;
+  font-size: 1.42cqw; line-height: 1.38;
+}
+.slide.enter { animation: slideIn .6s cubic-bezier(.2,.8,.2,1) both; }
+.slide.leave { animation: slideOut .35s ease both; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(3%) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes slideOut { to { opacity: 0; transform: translateX(-3%) scale(.985); } }
+
+/* Revelação guiada pela narração */
+[data-alvo] { transition: opacity .5s ease, transform .5s ease, box-shadow .5s ease, background-color .5s ease, border-color .5s ease; }
+[data-alvo].pending { opacity: .3; transform: translateY(.4cqw); }
+[data-alvo].seen { opacity: 1; transform: none; }
+[data-alvo].active { opacity: 1; transform: none; }
+
+.top { display: flex; align-items: center; gap: 1cqw; flex-wrap: wrap; }
+.eyebrow { font-size: 1.05cqw; font-weight: 700; letter-spacing: .14cqw; text-transform: uppercase; color: var(--blue); }
+.badge { font-size: 1.05cqw; font-weight: 700; padding: .35cqw 1cqw; border-radius: 999px; }
+.badge.hot { background: var(--hot-deep); color: #FFF4EC; box-shadow: 0 0 22px rgba(255,138,76,.35); }
+.badge.base { background: #232C48; color: #C8D2EA; }
+h1, h2 { font-family: 'Space Grotesk', 'DM Sans', sans-serif; font-weight: 700; line-height: 1.08; letter-spacing: -.02em; }
+.slide h2.title { font-size: 3.1cqw; }
+.slide h2.title:not(.nopin)::before { content: "📌 "; font-size: .8em; }
+
+.grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 3fr 2fr; gap: 1.4cqw; }
+.col { display: flex; flex-direction: column; gap: 1.2cqw; min-height: 0; }
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 1.1cqw;
+  padding: 1.3cqw 1.5cqw; display: flex; flex-direction: column; gap: .6cqw;
+}
+.card h3 { font-size: 1.12cqw; font-weight: 800; letter-spacing: .02em; color: var(--blue); }
+.card.points { flex: 1; }
+.card ul { list-style: none; display: flex; flex-direction: column; gap: .45cqw; }
+.card li { position: relative; padding: .3cqw .6cqw .3cqw 1.6cqw; border-radius: .6cqw; }
+.card li::before { content: ""; position: absolute; left: .55cqw; top: .95cqw; width: .45cqw; height: .45cqw; border-radius: 50%; background: var(--blue); }
+.card li.active { background: rgba(122,167,255,.14); box-shadow: inset .25cqw 0 0 var(--blue); }
+.card strong, td strong, .item strong { color: #FFFFFF; font-weight: 800; }
+.card.concept.active, .bar.active { box-shadow: var(--glow); border-color: var(--blue); }
+.card.alert { background: #1E1A26; border-color: #3A3046; }
+.card.alert h3 { color: #A9B8DD; }
+.card.alert.hot { background: linear-gradient(160deg, #2A1712, #1E1418); border-color: #5A2E1E; }
+.card.alert.hot h3 { color: var(--hot); }
+.card.alert.active { box-shadow: var(--glow-hot); border-color: var(--hot); }
+.card.alert.hot.active { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 2px rgba(255,138,76,.9), 0 0 54px rgba(255,138,76,.5); } }
+.card.macete { flex: 1; background: linear-gradient(160deg, #222B4D, #161D36); border-color: #36406A; }
+.card.macete h3 { color: var(--gold); }
+.card.macete p { font-size: 1.55cqw; font-weight: 700; line-height: 1.3; }
+.card.macete.active { box-shadow: var(--glow-gold); border-color: var(--gold); }
+
+/* Tabelas */
+.bar { background: var(--panel); border: 1px solid var(--line); border-radius: 1cqw; padding: .9cqw 1.4cqw; }
+.bar b { color: var(--blue); }
+.tables { display: flex; gap: 1.4cqw; min-height: 0; }
+table { flex: 1; border-collapse: separate; border-spacing: 0; font-size: 1.22cqw; background: var(--panel); border: 1px solid var(--line); border-radius: 1cqw; overflow: hidden; }
+th { text-align: left; background: #202A4A; color: var(--gold); padding: .6cqw .9cqw; font-weight: 800; }
+td { padding: .5cqw .9cqw; border-top: 1px solid var(--line); vertical-align: top; }
+tr.active td { background: rgba(122,167,255,.16); }
+tr.active td:first-child { box-shadow: inset .3cqw 0 0 var(--blue); }
+.gab table { font-size: 1.3cqw; align-self: flex-start; }
+.gab td { padding: .42cqw .9cqw; }
+.under { display: grid; grid-template-columns: 3fr 2fr; gap: 1.4cqw; margin-top: auto; }
+.under .card.macete p { font-size: 1.4cqw; }
+
+/* Divisórias, capa, mapa, lista */
+.slide.divider { justify-content: center; gap: 1.6cqw; padding-left: 6cqw; background: radial-gradient(70cqw 40cqw at 85% 110%, rgba(255,138,76,.18), transparent 60%); }
+.slide.divider.gabarito { background: radial-gradient(70cqw 40cqw at 85% 110%, rgba(255,138,76,.35), transparent 60%), #1C0F0B; }
+.num { font-family: 'Space Grotesk', sans-serif; font-size: 10cqw; font-weight: 700; line-height: .9; color: var(--gold); text-shadow: 0 0 40px rgba(255,200,87,.25); }
+.divider h2 { font-size: 4.6cqw; max-width: 80%; }
+.divider p.sub, .cover p.sub { font-size: 1.8cqw; color: #BFC9E2; max-width: 75%; }
+.divider .badge { align-self: flex-start; font-size: 1.35cqw; padding: .5cqw 1.3cqw; }
+.slide.cover { justify-content: center; gap: 2cqw; padding-left: 6cqw; background: radial-gradient(60cqw 40cqw at 90% 0%, rgba(122,167,255,.22), transparent 60%), radial-gradient(50cqw 30cqw at 0% 100%, rgba(255,138,76,.18), transparent 60%); }
+.cover h1 { font-size: 6.2cqw; }
+.cover .chips { display: flex; gap: 1cqw; }
+.cover .chips .badge { font-size: 1.3cqw; padding: .5cqw 1.3cqw; }
+.cards { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 1.2cqw; min-height: 0; }
+.cards .card h3 { font-size: 1.6cqw; }
+.cards .card.hot { background: linear-gradient(160deg, #2A1712, #1E1418); border-color: #5A2E1E; }
+.cards .card.hot h3, .cards .card.hot .tag { color: var(--hot); }
+.cards .card.final { background: linear-gradient(160deg, #222B4D, #161D36); }
+.cards .card.final h3 { color: var(--gold); }
+.cards .tag { font-weight: 700; color: var(--muted); margin-top: auto; }
+.cards .card.active { box-shadow: var(--glow); border-color: var(--blue); }
+.cards .card.hot.active { box-shadow: var(--glow-hot); border-color: var(--hot); }
+.foot { color: var(--muted); font-size: 1.15cqw; }
+.items { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, auto); grid-auto-flow: column; gap: 1cqw 2.4cqw; align-content: start; }
+.item { display: flex; gap: 1cqw; align-items: baseline; font-size: 1.5cqw; padding: .6cqw .9cqw; border-radius: .8cqw; border: 1px solid transparent; }
+.item .n { font-family: 'Space Grotesk', sans-serif; color: var(--gold); font-weight: 700; font-size: 2cqw; min-width: 2.4cqw; }
+.item.active { background: var(--panel2); border-color: var(--gold); box-shadow: var(--glow-gold); }
+.pill { align-self: flex-start; background: var(--hot-deep); color: #FFF4EC; font-weight: 700; padding: .6cqw 1.4cqw; border-radius: 999px; font-size: 1.3cqw; }
+
+/* Legenda */
+.caption {
+  width: 100%; min-height: 84px; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 10px 18px; border-radius: 12px;
+  background: rgba(0,0,0,.55); border: 1px solid var(--line);
+  font-size: clamp(15px, 1.5vw, 21px); line-height: 1.4; font-weight: 500;
+}
+.caption span { animation: capIn .35s ease both; }
+@keyframes capIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.caption.off { visibility: hidden; }
+
+/* Controles */
+.controls { width: 100%; display: flex; flex-direction: column; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 12px; }
+.progress { position: relative; height: 10px; border-radius: 99px; background: #222B47; cursor: pointer; }
+.progress .fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--blue), #A9C6FF); }
+.progress .tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: rgba(255,255,255,.18); }
+.progress .tick.sec { background: rgba(255,200,87,.6); }
+.progress .knob { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(122,167,255,.35); }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; }
+.btn:hover { border-color: var(--blue); }
+.btn.primary { background: var(--blue); color: #0A1124; border-color: var(--blue); font-weight: 800; min-width: 104px; justify-content: center; }
+.btn.on { border-color: var(--gold); color: var(--gold); }
+.time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; }
+.spacer { flex: 1; }
+select { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; max-width: 260px; }
+.speed { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.speed button { background: var(--panel2); border: 0; padding: 8px 11px; cursor: pointer; min-height: 40px; }
+.speed button + button { border-left: 1px solid var(--line); }
+.speed button.on { background: var(--gold); color: #1A1400; font-weight: 800; }
+.hint { color: var(--muted); font-size: 13px; }
+
+/* Tela inicial */
+.start { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6cqw; background: rgba(6,9,20,.72); backdrop-filter: blur(6px); text-align: center; padding: 3cqw; }
+.start button { font-size: 1.8cqw; font-weight: 800; padding: 1.2cqw 3cqw; border-radius: 999px; border: 0; background: var(--blue); color: #0A1124; cursor: pointer; box-shadow: 0 0 40px rgba(122,167,255,.5); }
+.start p { color: #C7D0E6; font-size: 1.3cqw; max-width: 60%; }
+.start.hidden { display: none; }
+
+@media (max-width: 700px) {
+  .stage-wrap { width: 100%; }
+  .row .hide-sm { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="start" id="start">
+        <button id="startBtn">▶ Começar a aula</button>
+        <p>Melhor experiência: abra no <b>Microsoft Edge</b>, que tem a voz natural Francisca grátis. No Chrome, a voz do Google também é boa. Você pode trocar a voz no seletor abaixo.</p>
+      </div>
+    </div>
+  </div>
+  <div class="caption" id="caption"><span>Clique em “Começar a aula” para iniciar a narração.</span></div>
+  <div class="controls">
+    <div class="progress" id="progress" title="Clique para pular"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+    <div class="row">
+      <button class="btn" id="prev" title="Slide anterior (←)">⏮ <span class="hide-sm">Voltar</span></button>
+      <button class="btn primary" id="play" title="Play / Pause (espaço)">▶ Play</button>
+      <button class="btn" id="next" title="Próximo slide (→)"><span class="hide-sm">Avançar</span> ⏭</button>
+      <span class="time" id="time">00:00 / 00:00</span>
+      <span class="spacer"></span>
+      <span class="hint hide-sm">Velocidade</span>
+      <div class="speed" id="speed">
+        <button data-rate="1" class="on">1x</button><button data-rate="1.25">1.25x</button><button data-rate="1.5">1.5x</button>
+      </div>
+      <button class="btn on" id="cc" title="Legendas (C)">CC</button>
+    </div>
+    <div class="row">
+      <select id="jump" aria-label="Ir para o slide"></select>
+      <select id="voice" aria-label="Voz da narração"><option value="">Voz padrão pt-BR</option></select>
+      <span class="hint" id="voiceTip" style="flex:1;min-width:220px"></span>
+      <button class="btn" id="export" title="Baixa o roteiro em JSON para gerar MP3 no ElevenLabs ou Google Cloud TTS">⬇ Roteiro (JSON)</button>
+      <button class="btn" id="fs" title="Tela cheia (F)">⛶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   CONTEÚDO DOS SLIDES (gerado a partir do deck "Revisão ES1 para a P1")
+   ===================================================================== */
+const SLIDES = [
+ {
+  "id": "d6",
+  "title": "Gabarito comentado",
+  "kind": "divider",
+  "num": "✓",
+  "sub": "Tente responder a revisão sozinho antes de olhar. Itens com * são de interpretação: confira com o professor.",
+  "badge": ""
+ },
+ {
+  "id": "gab-proc",
+  "title": "Processos: Q1 a Q21",
+  "eyebrow": "Gabarito · Revisão de Processos",
+  "badge": "",
+  "hot": false,
+  "kind": "table",
+  "tables": [
+   {
+    "head": [
+     "Q",
+     "Resposta",
+     "Por quê"
+    ],
+    "rows": [
+     [
+      "1",
+      "<strong>e</strong>",
+      "Os 4 são valores do Manifesto"
+     ],
+     [
+      "2",
+      "<strong>d</strong>",
+      "Causas da falha = Retrospectiva"
+     ],
+     [
+      "3",
+      "<strong>a</strong>",
+      "No XP o ciclo se chama Iteração"
+     ],
+     [
+      "4",
+      "<strong>d</strong>",
+      "Cascata não tem entrega intermediária"
+     ],
+     [
+      "5",
+      "<strong>V F V F</strong>",
+      "XP não tem sprint variável; CI é XP"
+     ],
+     [
+      "6",
+      "<strong>V F F V</strong>",
+      "PO participa; Daily é dos Devs"
+     ],
+     [
+      "7",
+      "<strong>e</strong>",
+      "Quem, o quê, por quê, sem tecnologia"
+     ],
+     [
+      "8",
+      "<strong>V V F F</strong>",
+      "Review e Retro estão trocadas"
+     ],
+     [
+      "9",
+      "<strong>a</strong>",
+      "Soma do que está pronto = Incremento"
+     ],
+     [
+      "10",
+      "<strong>F V F F</strong>",
+      "Custo cresce exponencial, não linear"
+     ],
+     [
+      "11",
+      "<strong>a</strong>",
+      "Framework leve, Sprints, 3 papéis"
+     ]
+    ]
+   },
+   {
+    "head": [
+     "Q",
+     "Resposta",
+     "Por quê"
+    ],
+    "rows": [
+     [
+      "12",
+      "<strong>V V F</strong>",
+      "Nenhum dos dois manda no time"
+     ],
+     [
+      "13",
+      "<strong>V V F V</strong>",
+      "Backlog é do PO, não do SM"
+     ],
+     [
+      "14",
+      "<strong>V F V</strong>",
+      "Pares é prática do XP"
+     ],
+     [
+      "15",
+      "<strong>F F V V*</strong>",
+      "Urgência pede incremental/evolutivo"
+     ],
+     [
+      "16",
+      "<strong>a*</strong>",
+      "Padrões de codificação feitos juntos"
+     ],
+     [
+      "17",
+      "<strong>a*</strong>",
+      "Fases sequenciais facilitam a gestão"
+     ],
+     [
+      "18",
+      "<strong>d</strong>",
+      "WIP = Work In Progress"
+     ],
+     [
+      "19",
+      "<strong>d</strong>",
+      "Arquitetura + riscos = Elaboração"
+     ],
+     [
+      "20",
+      "<strong>c</strong>",
+      "PB, Sprint Backlog e Incremento"
+     ],
+     [
+      "21",
+      "<strong>aberta</strong>",
+      "Evitar sobrecarga, expor gargalos"
+     ]
+    ]
+   }
+  ],
+  "concept": "",
+  "alert": "",
+  "macete": ""
+ },
+ {
+  "id": "gab-arq",
+  "title": "Arquitetura: A1 a A19",
+  "eyebrow": "Gabarito · Revisão de Arquitetura",
+  "badge": "",
+  "hot": false,
+  "kind": "table",
+  "tables": [
+   {
+    "head": [
+     "Q",
+     "Resposta",
+     "Por quê"
+    ],
+    "rows": [
+     [
+      "1",
+      "<strong>d</strong>",
+      "Adicionar máquinas = escalabilidade"
+     ],
+     [
+      "2",
+      "<strong>V F V F</strong>",
+      "Micro é fracamente acoplado"
+     ],
+     [
+      "3",
+      "<strong>b</strong>",
+      "Componente = lógico; implantação = físico"
+     ],
+     [
+      "4",
+      "<strong>d</strong>",
+      "Hexagonal = acoplamento fraco"
+     ],
+     [
+      "5",
+      "<strong>c</strong>",
+      "Apresentação, negócio, dados"
+     ],
+     [
+      "6",
+      "<strong>e</strong>",
+      "Camada lógica não exige 3 servidores"
+     ],
+     [
+      "7",
+      "<strong>F F F V</strong>",
+      "Só \"banco por serviço\" é verdade"
+     ],
+     [
+      "8",
+      "<strong>c</strong>",
+      "Núcleo de domínio independente"
+     ],
+     [
+      "9",
+      "<strong>d</strong>",
+      "Interface no núcleo, implementação fora"
+     ],
+     [
+      "10",
+      "<strong>e</strong>",
+      "MQTT = broker assíncrono"
+     ]
+    ]
+   },
+   {
+    "head": [
+     "Q",
+     "Resposta",
+     "Por quê"
+    ],
+    "rows": [
+     [
+      "11",
+      "<strong>d</strong>",
+      "BFF no mobile + eventos no pedido"
+     ],
+     [
+      "12",
+      "<strong>V V V</strong>",
+      "Pub/Sub desacopla tudo isso"
+     ],
+     [
+      "13",
+      "<strong>b</strong>",
+      "Broker não é banco de dados"
+     ],
+     [
+      "14",
+      "<strong>V V V V</strong>",
+      "Todas corretas"
+     ],
+     [
+      "15",
+      "<strong>V V F V F*</strong>",
+      "MVP+EBC também é possível"
+     ],
+     [
+      "16",
+      "<strong>e</strong>",
+      "Dados fluem e são transformados"
+     ],
+     [
+      "17",
+      "<strong>c</strong>",
+      "Broker de eventos guarda e entrega"
+     ],
+     [
+      "18",
+      "<strong>b</strong>",
+      "Negócio separado da infra"
+     ],
+     [
+      "19",
+      "<strong>aberta</strong>",
+      "Inscrição vira microsserviço escalável"
+     ]
+    ]
+   }
+  ],
+  "concept": "",
+  "alert": "",
+  "macete": ""
+ },
+ {
+  "id": "top10",
+  "title": "🧠 Top 10 macetes da P1",
+  "kind": "list",
+  "eyebrow": "Para ler na porta da sala",
+  "items": [
+   "Cascata: água só desce, entrega só no fim.",
+   "Espiral = risco. Nunca para escopo pequeno.",
+   "Urgência + partes → incremental / evolutivo.",
+   "RUP: arquitetura + risco = Elaboração.",
+   "PO cuida do backlog; SM guia o Scrum; ninguém manda no time.",
+   "Review = produto. Retro = processo.",
+   "Artefatos: Product Backlog, Sprint Backlog, Incremento.",
+   "Prática de código (par, TDD, CI) = XP. Sprint no XP = Iteração.",
+   "Microsserviço: banco próprio, escala sozinho.",
+   "Hexagonal: interface no núcleo, implementação no adaptador. Broker entrega, não armazena para consulta."
+  ],
+  "foot": "Custo de mudança cresce exponencialmente. Linear é pegadinha."
+ }
+];
+
+/* =====================================================================
+   ROTEIRO DE NARRAÇÃO + LEGENDAS
+   Cada objeto é uma legenda: { slideId, textoLegenda, audioUrl, duracao, alvo }
+   - textoLegenda: o texto mostrado na legenda e lido pela voz.
+   - audioUrl: deixe "" para usar a voz do navegador (speechSynthesis, pt-BR).
+     Preencha com o caminho de um MP3 (ElevenLabs, Google Cloud TTS...) e o
+     player toca esse arquivo no lugar da voz sintetizada, no mesmo tempo da legenda.
+   - duracao: segundos em 1x (estimativa; usada na barra de progresso e como
+     tempo da legenda quando não há voz disponível).
+   - alvo: qual elemento do slide é destacado enquanto essa legenda está no ar.
+   ===================================================================== */
+const ROTEIRO = [
+ {
+  "slideId": "d6",
+  "textoLegenda": "Resolução das questões da revisão: gabarito comentado.",
+  "audioUrl": "",
+  "duracao": 2.3,
+  "alvo": "title"
+ },
+ {
+  "slideId": "d6",
+  "textoLegenda": "Tente responder a revisão sozinho antes de olhar. Itens com * são de interpretação: confira com o professor.",
+  "audioUrl": "",
+  "duracao": 7.8,
+  "alvo": "sub"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Processos: Q1 a Q21.",
+  "audioUrl": "",
+  "duracao": 2.0,
+  "alvo": "title"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 1: resposta e. Os 4 são valores do Manifesto.",
+  "audioUrl": "",
+  "duracao": 4.1,
+  "alvo": "r0-0"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 2: resposta d. Causas da falha = Retrospectiva.",
+  "audioUrl": "",
+  "duracao": 4.2,
+  "alvo": "r0-1"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 3: resposta a. No XP o ciclo se chama Iteração.",
+  "audioUrl": "",
+  "duracao": 4.2,
+  "alvo": "r0-2"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 4: resposta d. Cascata não tem entrega intermediária.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "r0-3"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 5: resposta V, F, V, F. XP não tem sprint variável; CI é XP.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "r0-4"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 6: resposta V, F, F, V. PO participa; Daily é dos Devs.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "r0-5"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 7: resposta e. Quem, o quê, por quê, sem tecnologia.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r0-6"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 8: resposta V, V, F, F. Review e Retro estão trocadas.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "r0-7"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 9: resposta a. Soma do que está pronto = Incremento.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r0-8"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 10: resposta F, V, F, F. Custo cresce exponencial, não linear.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "r0-9"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 11: resposta a. Framework leve, Sprints, 3 papéis.",
+  "audioUrl": "",
+  "duracao": 4.4,
+  "alvo": "r0-10"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 12: resposta V, V, F. Nenhum dos dois manda no time.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r1-0"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 13: resposta V, V, F, V. Backlog é do PO, não do SM.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r1-1"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 14: resposta V, F, V. Pares é prática do XP.",
+  "audioUrl": "",
+  "duracao": 4.0,
+  "alvo": "r1-2"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 15: resposta F, F, V, V. Urgência pede incremental/evolutivo. Esta é de interpretação: confira com o professor.",
+  "audioUrl": "",
+  "duracao": 8.6,
+  "alvo": "r1-3"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 16: resposta a. Padrões de codificação feitos juntos. Esta é de interpretação: confira com o professor.",
+  "audioUrl": "",
+  "duracao": 8.1,
+  "alvo": "r1-4"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 17: resposta a. Fases sequenciais facilitam a gestão. Esta é de interpretação: confira com o professor.",
+  "audioUrl": "",
+  "duracao": 8.1,
+  "alvo": "r1-5"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 18: resposta d. WIP = Work In Progress.",
+  "audioUrl": "",
+  "duracao": 3.6,
+  "alvo": "r1-6"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 19: resposta d. Arquitetura + riscos = Elaboração.",
+  "audioUrl": "",
+  "duracao": 4.4,
+  "alvo": "r1-7"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 20: resposta c. PB, Sprint Backlog e Incremento.",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "r1-8"
+ },
+ {
+  "slideId": "gab-proc",
+  "textoLegenda": "Questão 21: questão aberta. Evitar sobrecarga, expor gargalos.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "r1-9"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Arquitetura: A1 a A19.",
+  "audioUrl": "",
+  "duracao": 2.0,
+  "alvo": "title"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A1: resposta d. Adicionar máquinas = escalabilidade.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r0-0"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A2: resposta V, F, V, F. Micro é fracamente acoplado.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "r0-1"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A3: resposta b. Componente = lógico; implantação = físico.",
+  "audioUrl": "",
+  "duracao": 5.0,
+  "alvo": "r0-2"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A4: resposta d. Hexagonal = acoplamento fraco.",
+  "audioUrl": "",
+  "duracao": 4.1,
+  "alvo": "r0-3"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A5: resposta c. Apresentação, negócio, dados.",
+  "audioUrl": "",
+  "duracao": 4.1,
+  "alvo": "r0-4"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A6: resposta e. Camada lógica não exige 3 servidores.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "r0-5"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A7: resposta F, F, F, V. Só \"banco por serviço\" é verdade.",
+  "audioUrl": "",
+  "duracao": 5.0,
+  "alvo": "r0-6"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A8: resposta c. Núcleo de domínio independente.",
+  "audioUrl": "",
+  "duracao": 4.2,
+  "alvo": "r0-7"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A9: resposta d. Interface no núcleo, implementação fora.",
+  "audioUrl": "",
+  "duracao": 4.8,
+  "alvo": "r0-8"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A10: resposta e. MQTT = broker assíncrono.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "r0-9"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A11: resposta d. BFF no mobile + eventos no pedido.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r1-0"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A12: resposta V, V, V. Pub/Sub desacopla tudo isso.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r1-1"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A13: resposta b. Broker não é banco de dados.",
+  "audioUrl": "",
+  "duracao": 4.1,
+  "alvo": "r1-2"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A14: resposta V, V, V, V. Todas corretas.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "r1-3"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A15: resposta V, V, F, V, F. MVP+EBC também é possível. Esta é de interpretação: confira com o professor.",
+  "audioUrl": "",
+  "duracao": 8.2,
+  "alvo": "r1-4"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A16: resposta e. Dados fluem e são transformados.",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "r1-5"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A17: resposta c. Broker de eventos guarda e entrega.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "r1-6"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A18: resposta b. Negócio separado da infra.",
+  "audioUrl": "",
+  "duracao": 3.9,
+  "alvo": "r1-7"
+ },
+ {
+  "slideId": "gab-arq",
+  "textoLegenda": "Questão A19: questão aberta. Inscrição vira microsserviço escalável.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "r1-8"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Para fechar, os dez macetes da P1. Leia na porta da sala.",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "title"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 1: Cascata: água só desce, entrega só no fim.",
+  "audioUrl": "",
+  "duracao": 4.0,
+  "alvo": "item0"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 2: Espiral = risco. Nunca para escopo pequeno.",
+  "audioUrl": "",
+  "duracao": 4.1,
+  "alvo": "item1"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 3: Urgência + partes → incremental / evolutivo.",
+  "audioUrl": "",
+  "duracao": 4.1,
+  "alvo": "item2"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 4: RUP: arquitetura + risco = Elaboração.",
+  "audioUrl": "",
+  "duracao": 3.7,
+  "alvo": "item3"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 5: PO cuida do backlog; SM guia o Scrum; ninguém manda no time.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "item4"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 6: Review = produto. Retro = processo.",
+  "audioUrl": "",
+  "duracao": 3.5,
+  "alvo": "item5"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 7: Artefatos: Product Backlog, Sprint Backlog, Incremento.",
+  "audioUrl": "",
+  "duracao": 4.9,
+  "alvo": "item6"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 8: Prática de código (par, TDD, CI) = XP. Sprint no XP = Iteração.",
+  "audioUrl": "",
+  "duracao": 5.4,
+  "alvo": "item7"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 9: Microsserviço: banco próprio, escala sozinho.",
+  "audioUrl": "",
+  "duracao": 4.2,
+  "alvo": "item8"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Número 10: Hexagonal: interface no núcleo, implementação no adaptador. Broker entrega, não armazena para consulta.",
+  "audioUrl": "",
+  "duracao": 8.3,
+  "alvo": "item9"
+ },
+ {
+  "slideId": "top10",
+  "textoLegenda": "Custo de mudança cresce exponencialmente. Linear é pegadinha. Boa prova!",
+  "audioUrl": "",
+  "duracao": 5.4,
+  "alvo": "foot"
+ }
+];
+
+/* Atalho para áudios pré-gerados: se você salvar um MP3 por legenda como
+   audios/001.mp3, audios/002.mp3 ... (na ordem do ROTEIRO), basta definir
+   AUDIO_BASE = "audios" e todos os audioUrl vazios são preenchidos sozinhos. */
+const AUDIO_BASE = "";
+let usingMp3 = false;
+function aplicarAudios(base) {
+  ROTEIRO.forEach((s, i) => { if (!s.audioUrl) s.audioUrl = `${base}/${String(i + 1).padStart(3, "0")}.mp3`; });
+  usingMp3 = true; if (typeof updateTip === "function") updateTip();
+}
+if (AUDIO_BASE) aplicarAudios(AUDIO_BASE);
+
+
+/* ===================================================================== */
+const $ = (q) => document.querySelector(q);
+const stage = $("#stage"), caption = $("#caption"), fill = $("#fill"), knob = $("#knob");
+const playBtn = $("#play"), timeEl = $("#time"), jump = $("#jump"), voiceSel = $("#voice");
+const bySlide = Object.fromEntries(SLIDES.map((s, i) => [s.id, { ...s, index: i }]));
+
+// tempos acumulados (em 1x)
+const starts = []; let total = 0;
+ROTEIRO.forEach((s) => { starts.push(total); total += s.duracao; });
+const firstSeg = {}; ROTEIRO.forEach((s, i) => { if (!(s.slideId in firstSeg)) firstSeg[s.slideId] = i; });
+
+let cur = 0, playing = false, rate = 1, token = 0, segT0 = 0, timers = [], shownSlide = null, ccOn = true;
+const audio = new Audio(); audio.preload = "auto";
+let audioPausedSeg = -1;
+
+/* ---------- Render ---------- */
+const esc = (t) => String(t).replace(/&(?!amp;|lt;|gt;)/g, "&amp;");
+function badgeHTML(s) {
+  if (!s.badge) return "";
+  return `<span class="badge ${s.badge.startsWith("🔥") ? "hot" : "base"}">${esc(s.badge)}</span>`;
+}
+function renderSlide(s) {
+  const el = document.createElement("div");
+  el.className = "slide"; el.dataset.id = s.id;
+  if (s.kind === "cover") {
+    el.classList.add("cover");
+    el.innerHTML = `<p class="eyebrow" style="color:var(--gold)">${esc(s.eyebrow)}</p>
+      <h1 data-alvo="title">${s.title}</h1>
+      <p class="sub" data-alvo="sub">${esc(s.sub)}</p>
+      <div class="chips" data-alvo="chips"><span class="badge hot">🔥 = caiu na revisão</span><span class="badge base">📚 = base teórica</span></div>`;
+  } else if (s.kind === "divider") {
+    el.classList.add("divider"); if (s.id === "d6") el.classList.add("gabarito");
+    el.innerHTML = `<div class="num">${esc(s.num)}</div><h2 data-alvo="title">${esc(s.title)}</h2>
+      <p class="sub" data-alvo="sub">${esc(s.sub)}</p>${s.badge ? `<span class="badge hot" data-alvo="badge">${esc(s.badge)}</span>` : ""}`;
+  } else if (s.kind === "cards") {
+    el.innerHTML = `<div class="top"><span class="eyebrow">${esc(s.eyebrow)}</span></div>
+      <h2 class="title" data-alvo="title">${esc(s.title.replace("📌 ", ""))}</h2>
+      <div class="cards">${s.cards.map((c, i) => `<div class="card ${c.hot ? "hot" : ""} ${i === 5 ? "final" : ""}" data-alvo="card${i}">
+        <h3>${esc(c.h)}</h3><p>${esc(c.p)}</p><p class="tag">${esc(c.tag)}</p></div>`).join("")}</div>
+      <p class="foot" data-alvo="foot">${esc(s.foot)}</p>`;
+  } else if (s.kind === "list") {
+    el.innerHTML = `<div class="top"><span class="eyebrow" style="color:var(--gold)">${esc(s.eyebrow)}</span></div>
+      <h2 class="title nopin" data-alvo="title">🧠 ${esc(s.title.replace("🧠 ", ""))}</h2>
+      <div class="items">${s.items.map((t, i) => `<div class="item" data-alvo="item${i}"><span class="n">${i + 1}</span><span>${t}</span></div>`).join("")}</div>
+      <p class="pill" data-alvo="foot">${esc(s.foot)}</p>`;
+  } else if (s.kind === "table") {
+    const gab = s.id.startsWith("gab"); if (gab) el.classList.add("gab");
+    el.innerHTML = `<div class="top"><span class="eyebrow" ${gab ? 'style="color:var(--hot)"' : ""}>${esc(s.eyebrow)}</span>${badgeHTML(s)}</div>
+      <h2 class="title" data-alvo="title">${esc(s.title)}</h2>
+      ${s.concept ? `<div class="bar" data-alvo="concept"><b>💡 Conceito central &amp; analogia:</b> ${s.concept}</div>` : ""}
+      <div class="tables">${s.tables.map((t, ti) => `<table><tr>${t.head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr>
+        ${t.rows.map((r, ri) => `<tr data-alvo="r${ti}-${ri}">${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>`).join("")}</div>
+      ${s.alert || s.macete ? `<div class="under">
+        ${s.alert ? `<div class="card alert ${s.hot ? "hot" : ""}" data-alvo="alert"><h3>⚠️ Alerta de prova</h3><p>${s.alert}</p></div>` : "<div></div>"}
+        ${s.macete ? `<div class="card macete" data-alvo="macete"><h3>🧠 Gatilho mental / Macete</h3><p>${s.macete}</p></div>` : ""}</div>` : ""}`;
+  } else {
+    el.innerHTML = `<div class="top"><span class="eyebrow">${esc(s.eyebrow)}</span>${badgeHTML(s)}</div>
+      <h2 class="title" data-alvo="title">${esc(s.title)}</h2>
+      <div class="grid">
+        <div class="col">
+          <div class="card concept" data-alvo="concept"><h3>💡 Conceito central &amp; analogia</h3><p>${s.concept}</p></div>
+          <div class="card points"><h3>🎯 ${esc(s.bulletsTitle || "Pontos de memorização")}</h3>
+            <ul>${s.bullets.map((b, i) => `<li data-alvo="b${i}">${b}</li>`).join("")}</ul></div>
+        </div>
+        <div class="col">
+          <div class="card alert ${s.hot ? "hot" : ""}" data-alvo="alert"><h3>⚠️ Alerta de prova${s.hot ? " · conexão com a revisão" : ""}</h3><p>${s.alert}</p></div>
+          <div class="card macete" data-alvo="macete"><h3>🧠 Gatilho mental / Macete</h3><p>${s.macete}</p></div>
+        </div>
+      </div>`;
+  }
+  return el;
+}
+
+function showSlide(id) {
+  if (shownSlide === id) return;
+  const old = stage.querySelector(".slide:not(.leave)");
+  if (old) { old.classList.add("leave"); setTimeout(() => old.remove(), 360); }
+  const el = renderSlide(bySlide[id]);
+  el.classList.add("enter");
+  stage.appendChild(el);
+  shownSlide = id;
+  jump.value = id;
+}
+
+/* Destaque: o que já foi narrado fica aceso, o atual brilha, o resto espera */
+function highlight(i) {
+  const seg = ROTEIRO[i];
+  const el = stage.querySelector(`.slide[data-id="${seg.slideId}"]:not(.leave)`);
+  if (!el) return;
+  const order = [];
+  for (let k = firstSeg[seg.slideId]; k < ROTEIRO.length && ROTEIRO[k].slideId === seg.slideId; k++) {
+    if (!order.includes(ROTEIRO[k].alvo)) order.push(ROTEIRO[k].alvo);
+  }
+  const pos = order.indexOf(seg.alvo);
+  el.querySelectorAll("[data-alvo]").forEach((n) => {
+    const p = order.indexOf(n.dataset.alvo);
+    n.classList.remove("pending", "seen", "active");
+    if (p === -1 || p < pos) n.classList.add("seen");
+    else if (p === pos) n.classList.add("active");
+    else n.classList.add("pending");
+  });
+}
+
+function setCaption(text) {
+  caption.innerHTML = "";
+  const sp = document.createElement("span"); sp.textContent = text; caption.appendChild(sp);
+}
+
+/* ---------- Voz ---------- */
+const hasTTS = "speechSynthesis" in window;
+let voices = [], voice = null;
+const isNatural = (v) => !!v && /natural|neural|online|premium|enhanced/i.test(v.name);
+function rankVoice(v) {
+  let r = 0;
+  if (/pt[-_]BR/i.test(v.lang)) r += 10; else if (/^pt/i.test(v.lang)) r += 2;
+  if (isNatural(v)) r += 40;                       // Edge: "Microsoft Francisca Online (Natural)"
+  if (/francisca/i.test(v.name)) r += 6;           // a mais agradável para aula
+  if (/thalita|antonio/i.test(v.name)) r += 4;
+  if (/google/i.test(v.name)) r += 20;             // Chrome: "Google português do Brasil"
+  if (/luciana|felipe/i.test(v.name)) r += 8;      // macOS / iOS
+  if (/microsoft (maria|daniel)\b/i.test(v.name) && !isNatural(v)) r -= 5; // vozes antigas do Windows
+  if (v.localService === false) r += 2;
+  return r;
+}
+function loadVoices() {
+  if (!hasTTS) return;
+  voices = speechSynthesis.getVoices().filter((v) => /^pt/i.test(v.lang)).sort((a, b) => rankVoice(b) - rankVoice(a));
+  const keep = voiceSel.value;
+  voiceSel.innerHTML = voices.length ? "" : '<option value="">Nenhuma voz pt instalada (legenda no tempo)</option>';
+  voices.forEach((v) => { const o = document.createElement("option"); o.value = v.name; o.textContent = `${v.name} (${v.lang})`; voiceSel.appendChild(o); });
+  voice = voices.find((v) => v.name === keep) || voices[0] || null;
+  if (voice) voiceSel.value = voice.name;
+  updateTip();
+}
+function updateTip() {
+  const tip = document.getElementById("voiceTip"); if (!tip) return;
+  if (usingMp3) tip.innerHTML = "🎧 Narração com os áudios neurais da pasta <b>audios</b>.";
+  else if (isNatural(voice) || /google/i.test(voice ? voice.name : "")) tip.innerHTML = `🎧 Voz em uso: <b>${voice.name}</b>.`;
+  else tip.innerHTML = "⚠️ A voz deste navegador é robótica. Para uma voz natural grátis, abra este arquivo no <b>Microsoft Edge</b> (voz Francisca Online, precisa de internet) ou gere os áudios com o <b>gerar_audios.py</b>.";
+}
+if (hasTTS) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+updateTip();
+voiceSel.onchange = () => { voice = voices.find((v) => v.name === voiceSel.value) || null; updateTip(); if (playing && !usingMp3) startSeg(); };
+
+/* Ajustes só de pronúncia (a legenda continua igual) */
+function paraFala(t, slideId) {
+  let s = t
+    .replace(/→/g, ", depois, ").replace(/×/g, " versus ").replace(/\bvs\b/gi, "versus")
+    .replace(/\s=\s/g, " é ").replace(/=/g, " é ").replace(/\+/g, " mais ")
+    .replace(/\bQ(\d+)/g, "questão $1").replace(/\bA(\d{1,2})\b/g, "A $1")
+    .replace(/\(V\)/g, "(verdadeiro)").replace(/\(F\)/g, "(falso)")
+    .replace(/(^|\s)(é|são) F\b/g, "$1$2 falso").replace(/(^|\s)(é|são) V\b/g, "$1$2 verdadeiro")
+    .replace(/(\w)\/(\w)/g, "$1 e $2").replace(/["“”]/g, "");
+  s = s.replace(/\b[VF](?:,?\s+[VF]\b|,\s*[VF]\b)+/g, (m) => m.replace(/\bV\b/g, "verdadeiro").replace(/\bF\b/g, "falso"));
+  if (slideId && slideId.startsWith("gab") || /^Q15 = /.test(t) || /^Macete: Q15/.test(t)) {
+    s = s.replace(/\b([VF])\b(?=\s*[,.]|\s+[VF]\b|$)/g, (m, x) => (x === "V" ? "verdadeiro" : "falso"));
+  }
+  return s;
+}
+
+/* ---------- Motor do player ---------- */
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+function stopSound() {
+  token++; clearTimers();
+  if (hasTTS) speechSynthesis.cancel();
+  if (!audio.paused) audio.pause();
+}
+function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+
+function goTo(i, { keepPlaying = true } = {}) {
+  i = Math.max(0, Math.min(ROTEIRO.length - 1, i));
+  stopSound(); audioPausedSeg = -1;
+  cur = i;
+  const seg = ROTEIRO[cur];
+  showSlide(seg.slideId);
+  requestAnimationFrame(() => highlight(cur));
+  setCaption(seg.textoLegenda);
+  segT0 = performance.now();
+  if (playing && keepPlaying) startSeg();
+  drawProgress();
+}
+
+function next() {
+  if (cur >= ROTEIRO.length - 1) { setPlaying(false); setCaption("Fim da aula. Boa prova! 🍀"); return; }
+  goTo(cur + 1);
+}
+
+function startSeg() {
+  stopSound();
+  const seg = ROTEIRO[cur], my = token;
+  segT0 = performance.now();
+  if (seg.audioUrl) {
+    audio.src = seg.audioUrl; audio.playbackRate = rate;
+    audio.onended = () => { if (my === token) next(); };
+    audio.onerror = () => { if (my === token) speak(seg, my); };
+    audio.play().catch(() => { if (my === token) speak(seg, my); });
+  } else speak(seg, my);
+}
+
+function speak(seg, my) {
+  const fallback = () => later(() => { if (my === token) next(); }, (seg.duracao * 1000) / rate);
+  if (!hasTTS) return fallback();
+  speechSynthesis.cancel();
+  later(() => {
+    if (my !== token) return;
+    const u = new SpeechSynthesisUtterance(paraFala(seg.textoLegenda, seg.slideId));
+    u.lang = "pt-BR"; if (voice) u.voice = voice; u.rate = rate; u.pitch = 1;
+    let started = false;
+    u.onstart = () => { started = true; segT0 = performance.now(); };
+    u.onend = () => { if (my === token) later(() => { if (my === token) next(); }, 180); };
+    u.onerror = (e) => { if (my === token && e.error !== "interrupted" && e.error !== "canceled") fallback(); };
+    speechSynthesis.speak(u);
+    // se a voz nunca começar (navegador sem voz), segue no tempo da legenda
+    later(() => { if (my === token && !started && !speechSynthesis.speaking) { speechSynthesis.cancel(); fallback(); } }, 2500);
+    // rede de segurança para navegadores que não disparam onend
+    later(() => { if (my === token) { speechSynthesis.cancel(); next(); } }, ((seg.duracao * 2.6) / rate + 5) * 1000);
+  }, 60);
+}
+
+function setPlaying(p) {
+  playing = p;
+  playBtn.textContent = p ? "⏸ Pause" : "▶ Play";
+}
+function play() {
+  $("#start").classList.add("hidden");
+  if (playing) return;
+  setPlaying(true);
+  if (audioPausedSeg === cur && audio.src) {
+    const my = ++token; audio.playbackRate = rate;
+    audio.onended = () => { if (my === token) next(); };
+    audio.play().catch(() => startSeg());
+    segT0 = performance.now() - audio.currentTime * 1000 / rate;
+    audioPausedSeg = -1;
+  } else startSeg();
+}
+function pause() {
+  if (!playing) return;
+  setPlaying(false);
+  const usingAudio = !audio.paused;
+  if (usingAudio) { token++; clearTimers(); audio.pause(); audioPausedSeg = cur; }
+  else stopSound(); // a fala recomeça do início da legenda atual ao dar play
+}
+
+function slideStep(dir) {
+  const idx = bySlide[ROTEIRO[cur].slideId].index + dir;
+  if (idx < 0 || idx >= SLIDES.length) return;
+  goTo(firstSeg[SLIDES[idx].id]);
+}
+
+/* ---------- Progresso ---------- */
+const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+function elapsedInSeg() {
+  const d = ROTEIRO[cur].duracao;
+  if (!audio.paused && audio.duration) return Math.min(d, (audio.currentTime / audio.duration) * d);
+  if (!playing) return 0;
+  return Math.min(d * 0.98, ((performance.now() - segT0) / 1000) * rate);
+}
+function drawProgress() {
+  const t = starts[cur] + elapsedInSeg();
+  const pct = (t / total) * 100;
+  fill.style.width = pct + "%"; knob.style.left = pct + "%";
+  timeEl.textContent = `${fmt(t / rate)} / ${fmt(total / rate)} · slide ${bySlide[ROTEIRO[cur].slideId].index + 1}/${SLIDES.length}`;
+}
+(function loop() { drawProgress(); requestAnimationFrame(loop); })();
+
+// marcas de seção e de slide na barra
+(function ticks() {
+  const sec = new Set(SLIDES.filter((s) => s.kind === "divider").map((s) => s.id));
+  SLIDES.forEach((s) => {
+    const k = firstSeg[s.id]; if (!k) return;
+    const d = document.createElement("div");
+    d.className = "tick" + (sec.has(s.id) ? " sec" : "");
+    d.style.left = (starts[k] / total) * 100 + "%";
+    $("#progress").appendChild(d);
+  });
+})();
+
+$("#progress").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  const t = ((e.clientX - r.left) / r.width) * total;
+  let k = 0; while (k < starts.length - 1 && starts[k + 1] <= t) k++;
+  $("#start").classList.add("hidden");
+  goTo(k);
+});
+
+/* ---------- Controles ---------- */
+playBtn.onclick = () => (playing ? pause() : play());
+$("#startBtn").onclick = () => play();
+$("#prev").onclick = () => slideStep(-1);
+$("#next").onclick = () => slideStep(1);
+$("#speed").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  rate = parseFloat(b.dataset.rate);
+  $("#speed").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  if (!audio.paused) audio.playbackRate = rate;
+  else if (playing) startSeg(); // a voz do navegador só muda de velocidade numa nova fala
+});
+$("#cc").onclick = () => { ccOn = !ccOn; caption.classList.toggle("off", !ccOn); $("#cc").classList.toggle("on", ccOn); };
+$("#fs").onclick = () => { const a = document.querySelector(".app"); document.fullscreenElement ? document.exitFullscreen() : a.requestFullscreen && a.requestFullscreen(); };
+SLIDES.forEach((s, i) => {
+  const o = document.createElement("option"); o.value = s.id;
+  const t = s.title.replace(/<br>/g, " ").replace(/^📌 |^🧠 /, "");
+  o.textContent = `${i + 1}. ${s.kind === "divider" ? "■ " : ""}${t}`; jump.appendChild(o);
+});
+jump.onchange = () => { $("#start").classList.add("hidden"); goTo(firstSeg[jump.value]); };
+$("#export").onclick = () => {
+  const data = ROTEIRO.map(({ slideId, textoLegenda, audioUrl, duracao }, i) => ({ n: i + 1, arquivo: `${String(i + 1).padStart(3, "0")}.mp3`, slideId, textoLegenda, audioUrl, duracao }));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  a.download = "roteiro-video-aula-es1.json"; a.click();
+};
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "SELECT") return;
+  if (e.code === "Space") { e.preventDefault(); playing ? pause() : play(); }
+  else if (e.key === "ArrowRight") slideStep(1);
+  else if (e.key === "ArrowLeft") slideStep(-1);
+  else if (e.key.toLowerCase() === "c") $("#cc").click();
+  else if (e.key.toLowerCase() === "f") $("#fs").click();
+});
+
+goTo(0, { keepPlaying: false });
+</script>
+<script src="bridge.js"></script>
+</body>
+</html>

@@ -1,0 +1,2425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aula 1 · Fundamentos, Processo e Ciclos de Vida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400..800&family=Space+Grotesk:wght@500..700&display=swap">
+<style>
+:root {
+  --bg: #090D1A;
+  --bg2: #0F1528;
+  --panel: #141B30;
+  --panel2: #1A2340;
+  --line: #27314F;
+  --text: #E8ECF6;
+  --muted: #9AA6C2;
+  --blue: #7AA7FF;
+  --hot: #FF8A4C;
+  --hot-deep: #C2410C;
+  --gold: #FFC857;
+  --glow: 0 0 0 2px rgba(122,167,255,.85), 0 0 34px rgba(122,167,255,.35);
+  --glow-hot: 0 0 0 2px rgba(255,138,76,.9), 0 0 34px rgba(255,138,76,.35);
+  --glow-gold: 0 0 0 2px rgba(255,200,87,.9), 0 0 34px rgba(255,200,87,.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: radial-gradient(1200px 600px at 20% -10%, #18224A 0%, transparent 60%), var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  display: flex; flex-direction: column; align-items: center;
+  overflow-x: hidden;
+}
+button, select { font: inherit; color: inherit; }
+
+/* ---------- Palco 16:9 ---------- */
+.app { width: 100%; max-width: 1600px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.stage-wrap { width: min(100%, calc((100vh - 262px) * 16 / 9)); min-width: min(100%, 320px); }
+.stage {
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  container-type: inline-size;
+  background: linear-gradient(160deg, var(--bg2), #0A0F1F 70%);
+  border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,.45);
+}
+.slide {
+  position: absolute; inset: 0; padding: 3.2cqw 4.2cqw 3cqw;
+  display: flex; flex-direction: column; gap: 1.4cqw;
+  font-size: 1.42cqw; line-height: 1.38;
+}
+.slide.enter { animation: slideIn .6s cubic-bezier(.2,.8,.2,1) both; }
+.slide.leave { animation: slideOut .35s ease both; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(3%) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes slideOut { to { opacity: 0; transform: translateX(-3%) scale(.985); } }
+
+/* Revelação guiada pela narração */
+[data-alvo] { transition: opacity .5s ease, transform .5s ease, box-shadow .5s ease, background-color .5s ease, border-color .5s ease; }
+[data-alvo].pending { opacity: .3; transform: translateY(.4cqw); }
+[data-alvo].seen { opacity: 1; transform: none; }
+[data-alvo].active { opacity: 1; transform: none; }
+
+.top { display: flex; align-items: center; gap: 1cqw; flex-wrap: wrap; }
+.eyebrow { font-size: 1.05cqw; font-weight: 700; letter-spacing: .14cqw; text-transform: uppercase; color: var(--blue); }
+.badge { font-size: 1.05cqw; font-weight: 700; padding: .35cqw 1cqw; border-radius: 999px; }
+.badge.hot { background: var(--hot-deep); color: #FFF4EC; box-shadow: 0 0 22px rgba(255,138,76,.35); }
+.badge.base { background: #232C48; color: #C8D2EA; }
+h1, h2 { font-family: 'Space Grotesk', 'DM Sans', sans-serif; font-weight: 700; line-height: 1.08; letter-spacing: -.02em; }
+.slide h2.title { font-size: 3.1cqw; }
+.slide h2.title:not(.nopin)::before { content: "📌 "; font-size: .8em; }
+
+.grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 3fr 2fr; gap: 1.4cqw; }
+.col { display: flex; flex-direction: column; gap: 1.2cqw; min-height: 0; }
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 1.1cqw;
+  padding: 1.3cqw 1.5cqw; display: flex; flex-direction: column; gap: .6cqw;
+}
+.card h3 { font-size: 1.12cqw; font-weight: 800; letter-spacing: .02em; color: var(--blue); }
+.card.points { flex: 1; }
+.card ul { list-style: none; display: flex; flex-direction: column; gap: .45cqw; }
+.card li { position: relative; padding: .3cqw .6cqw .3cqw 1.6cqw; border-radius: .6cqw; }
+.card li::before { content: ""; position: absolute; left: .55cqw; top: .95cqw; width: .45cqw; height: .45cqw; border-radius: 50%; background: var(--blue); }
+.card li.active { background: rgba(122,167,255,.14); box-shadow: inset .25cqw 0 0 var(--blue); }
+.card strong, td strong, .item strong { color: #FFFFFF; font-weight: 800; }
+.card.concept.active, .bar.active { box-shadow: var(--glow); border-color: var(--blue); }
+.card.alert { background: #1E1A26; border-color: #3A3046; }
+.card.alert h3 { color: #A9B8DD; }
+.card.alert.hot { background: linear-gradient(160deg, #2A1712, #1E1418); border-color: #5A2E1E; }
+.card.alert.hot h3 { color: var(--hot); }
+.card.alert.active { box-shadow: var(--glow-hot); border-color: var(--hot); }
+.card.alert.hot.active { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 2px rgba(255,138,76,.9), 0 0 54px rgba(255,138,76,.5); } }
+.card.macete { flex: 1; background: linear-gradient(160deg, #222B4D, #161D36); border-color: #36406A; }
+.card.macete h3 { color: var(--gold); }
+.card.macete p { font-size: 1.55cqw; font-weight: 700; line-height: 1.3; }
+.card.macete.active { box-shadow: var(--glow-gold); border-color: var(--gold); }
+
+/* Tabelas */
+.bar { background: var(--panel); border: 1px solid var(--line); border-radius: 1cqw; padding: .9cqw 1.4cqw; }
+.bar b { color: var(--blue); }
+.tables { display: flex; gap: 1.4cqw; min-height: 0; }
+table { flex: 1; border-collapse: separate; border-spacing: 0; font-size: 1.22cqw; background: var(--panel); border: 1px solid var(--line); border-radius: 1cqw; overflow: hidden; }
+th { text-align: left; background: #202A4A; color: var(--gold); padding: .6cqw .9cqw; font-weight: 800; }
+td { padding: .5cqw .9cqw; border-top: 1px solid var(--line); vertical-align: top; }
+tr.active td { background: rgba(122,167,255,.16); }
+tr.active td:first-child { box-shadow: inset .3cqw 0 0 var(--blue); }
+.gab table { font-size: 1.3cqw; align-self: flex-start; }
+.gab td { padding: .42cqw .9cqw; }
+.under { display: grid; grid-template-columns: 3fr 2fr; gap: 1.4cqw; margin-top: auto; }
+.under .card.macete p { font-size: 1.4cqw; }
+
+/* Divisórias, capa, mapa, lista */
+.slide.divider { justify-content: center; gap: 1.6cqw; padding-left: 6cqw; background: radial-gradient(70cqw 40cqw at 85% 110%, rgba(255,138,76,.18), transparent 60%); }
+.slide.divider.gabarito { background: radial-gradient(70cqw 40cqw at 85% 110%, rgba(255,138,76,.35), transparent 60%), #1C0F0B; }
+.num { font-family: 'Space Grotesk', sans-serif; font-size: 10cqw; font-weight: 700; line-height: .9; color: var(--gold); text-shadow: 0 0 40px rgba(255,200,87,.25); }
+.divider h2 { font-size: 4.6cqw; max-width: 80%; }
+.divider p.sub, .cover p.sub { font-size: 1.8cqw; color: #BFC9E2; max-width: 75%; }
+.divider .badge { align-self: flex-start; font-size: 1.35cqw; padding: .5cqw 1.3cqw; }
+.slide.cover { justify-content: center; gap: 2cqw; padding-left: 6cqw; background: radial-gradient(60cqw 40cqw at 90% 0%, rgba(122,167,255,.22), transparent 60%), radial-gradient(50cqw 30cqw at 0% 100%, rgba(255,138,76,.18), transparent 60%); }
+.cover h1 { font-size: 6.2cqw; }
+.cover .chips { display: flex; gap: 1cqw; }
+.cover .chips .badge { font-size: 1.3cqw; padding: .5cqw 1.3cqw; }
+.cards { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr; gap: 1.2cqw; min-height: 0; }
+.cards .card h3 { font-size: 1.6cqw; }
+.cards .card.hot { background: linear-gradient(160deg, #2A1712, #1E1418); border-color: #5A2E1E; }
+.cards .card.hot h3, .cards .card.hot .tag { color: var(--hot); }
+.cards .card.final { background: linear-gradient(160deg, #222B4D, #161D36); }
+.cards .card.final h3 { color: var(--gold); }
+.cards .tag { font-weight: 700; color: var(--muted); margin-top: auto; }
+.cards .card.active { box-shadow: var(--glow); border-color: var(--blue); }
+.cards .card.hot.active { box-shadow: var(--glow-hot); border-color: var(--hot); }
+.foot { color: var(--muted); font-size: 1.15cqw; }
+.items { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, auto); grid-auto-flow: column; gap: 1cqw 2.4cqw; align-content: start; }
+.item { display: flex; gap: 1cqw; align-items: baseline; font-size: 1.5cqw; padding: .6cqw .9cqw; border-radius: .8cqw; border: 1px solid transparent; }
+.item .n { font-family: 'Space Grotesk', sans-serif; color: var(--gold); font-weight: 700; font-size: 2cqw; min-width: 2.4cqw; }
+.item.active { background: var(--panel2); border-color: var(--gold); box-shadow: var(--glow-gold); }
+.pill { align-self: flex-start; background: var(--hot-deep); color: #FFF4EC; font-weight: 700; padding: .6cqw 1.4cqw; border-radius: 999px; font-size: 1.3cqw; }
+
+/* Legenda */
+.caption {
+  width: 100%; min-height: 84px; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 10px 18px; border-radius: 12px;
+  background: rgba(0,0,0,.55); border: 1px solid var(--line);
+  font-size: clamp(15px, 1.5vw, 21px); line-height: 1.4; font-weight: 500;
+}
+.caption span { animation: capIn .35s ease both; }
+@keyframes capIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.caption.off { visibility: hidden; }
+
+/* Controles */
+.controls { width: 100%; display: flex; flex-direction: column; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 12px; }
+.progress { position: relative; height: 10px; border-radius: 99px; background: #222B47; cursor: pointer; }
+.progress .fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--blue), #A9C6FF); }
+.progress .tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: rgba(255,255,255,.18); }
+.progress .tick.sec { background: rgba(255,200,87,.6); }
+.progress .knob { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(122,167,255,.35); }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; }
+.btn:hover { border-color: var(--blue); }
+.btn.primary { background: var(--blue); color: #0A1124; border-color: var(--blue); font-weight: 800; min-width: 104px; justify-content: center; }
+.btn.on { border-color: var(--gold); color: var(--gold); }
+.time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; }
+.spacer { flex: 1; }
+select { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 40px; max-width: 260px; }
+.speed { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.speed button { background: var(--panel2); border: 0; padding: 8px 11px; cursor: pointer; min-height: 40px; }
+.speed button + button { border-left: 1px solid var(--line); }
+.speed button.on { background: var(--gold); color: #1A1400; font-weight: 800; }
+.hint { color: var(--muted); font-size: 13px; }
+
+/* Tela inicial */
+.start { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6cqw; background: rgba(6,9,20,.72); backdrop-filter: blur(6px); text-align: center; padding: 3cqw; }
+.start button { font-size: 1.8cqw; font-weight: 800; padding: 1.2cqw 3cqw; border-radius: 999px; border: 0; background: var(--blue); color: #0A1124; cursor: pointer; box-shadow: 0 0 40px rgba(122,167,255,.5); }
+.start p { color: #C7D0E6; font-size: 1.3cqw; max-width: 60%; }
+.start.hidden { display: none; }
+
+@media (max-width: 700px) {
+  .stage-wrap { width: 100%; }
+  .row .hide-sm { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <div class="start" id="start">
+        <button id="startBtn">▶ Começar a aula</button>
+        <p>Melhor experiência: abra no <b>Microsoft Edge</b>, que tem a voz natural Francisca grátis. No Chrome, a voz do Google também é boa. Você pode trocar a voz no seletor abaixo.</p>
+      </div>
+    </div>
+  </div>
+  <div class="caption" id="caption"><span>Clique em “Começar a aula” para iniciar a narração.</span></div>
+  <div class="controls">
+    <div class="progress" id="progress" title="Clique para pular"><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+    <div class="row">
+      <button class="btn" id="prev" title="Slide anterior (←)">⏮ <span class="hide-sm">Voltar</span></button>
+      <button class="btn primary" id="play" title="Play / Pause (espaço)">▶ Play</button>
+      <button class="btn" id="next" title="Próximo slide (→)"><span class="hide-sm">Avançar</span> ⏭</button>
+      <span class="time" id="time">00:00 / 00:00</span>
+      <span class="spacer"></span>
+      <span class="hint hide-sm">Velocidade</span>
+      <div class="speed" id="speed">
+        <button data-rate="1" class="on">1x</button><button data-rate="1.25">1.25x</button><button data-rate="1.5">1.5x</button>
+      </div>
+      <button class="btn on" id="cc" title="Legendas (C)">CC</button>
+    </div>
+    <div class="row">
+      <select id="jump" aria-label="Ir para o slide"></select>
+      <select id="voice" aria-label="Voz da narração"><option value="">Voz padrão pt-BR</option></select>
+      <span class="hint" id="voiceTip" style="flex:1;min-width:220px"></span>
+      <button class="btn" id="export" title="Baixa o roteiro em JSON para gerar MP3 no ElevenLabs ou Google Cloud TTS">⬇ Roteiro (JSON)</button>
+      <button class="btn" id="fs" title="Tela cheia (F)">⛶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   CONTEÚDO DOS SLIDES (gerado a partir do deck "Revisão ES1 para a P1")
+   ===================================================================== */
+const SLIDES = [
+ {
+  "id": "cover",
+  "title": "Revisão para a P1,<br>do jeito que gruda",
+  "kind": "cover",
+  "eyebrow": "Engenharia de Software I · Prof. Jobson Massollar",
+  "sub": "Fundamentos, processo e ciclos de vida, com analogias, comparações e macetes para memorizar."
+ },
+ {
+  "id": "mapa",
+  "title": "📌 Onde está o peso da prova",
+  "kind": "cards",
+  "eyebrow": "Mapa da revisão",
+  "cards": [
+   {
+    "h": "1 · Fundamentos",
+    "p": "O que é ES, crise do software, processo × método × ferramenta, mitos.",
+    "tag": "📚 base (Q10 toca nos mitos)",
+    "hot": false
+   },
+   {
+    "h": "2 · Processo",
+    "p": "Polya, atividades de Pressman e Sommerville, 7 princípios de Hooker.",
+    "tag": "📚 base",
+    "hot": false
+   },
+   {
+    "h": "3 · Ciclos de vida",
+    "p": "Cascata, prototipagem, evolucionário, incremental, espiral, RUP.",
+    "tag": "🔥 Q4, Q10, Q15, Q17, Q19",
+    "hot": true
+   }
+  ],
+  "foot": "Métodos ágeis, arquitetura e a resolução das questões estão nas próximas aulas."
+ },
+ {
+  "id": "d1",
+  "title": "Fundamentos da Engenharia de Software",
+  "kind": "divider",
+  "num": "01",
+  "sub": "Por que programar não basta, o que a ES junta (processo, método, ferramenta) e os mitos que a prova adora desmentir.",
+  "badge": ""
+ },
+ {
+  "id": "es-def",
+  "title": "ES = programar com método de engenheiro",
+  "eyebrow": "Parte 1 · Fundamentos",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Uma casinha de cachorro você monta no improviso; um prédio de 40 andares precisa de engenharia. Software grande é o prédio: precisa de abordagem sistemática.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>IEEE:</strong> abordagem <strong>sistemática, disciplinada e quantificável</strong>",
+   "<strong>Boehm:</strong> conhecimento <strong>científico</strong> aplicado + a <strong>documentação</strong>",
+   "<strong>Bauer:</strong> princípios de engenharia para software <strong>econômico e confiável</strong>",
+   "Cobre <strong>desenvolver, operar e manter</strong>, não só codar",
+   "Motivo: <strong>complexidade</strong> (Windows 11 tem +60 milhões de linhas)"
+  ],
+  "alert": "Não apareceu na revisão. Se cair, é para ligar autor à frase: as três palavras do IEEE são as mais citadas.",
+  "macete": "IEEE = \"SDQ\": Sistemática, Disciplinada, Quantificável.<br>Bauer = Bolso (econômico).<br>Boehm = Biblioteca (científico)."
+ },
+ {
+  "id": "crise",
+  "title": "Crise do Software: a ES nasce em 1968",
+  "eyebrow": "Parte 1 · Fundamentos",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Anos 60: o hardware ficou barato e potente, todo mundo quis software maior, e os projetos viraram obra pública atrasada: estouro de prazo, custo e cliente insatisfeito.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "Causa: <strong>hardware mais barato</strong> + <strong>demanda por software complexo</strong>",
+   "Sintomas: <strong>custos e prazos estourados</strong>, software que não atende",
+   "Crise = <strong>conjunto de problemas</strong> no desenvolvimento",
+   "<strong>Conferência da OTAN, 1968</strong>: marco de criação da ES",
+   "Desafio eterno da ES: <strong>custo, prazo e qualidade</strong>"
+  ],
+  "alert": "Fora da revisão. Pegadinha clássica: a crise não foi \"um bug famoso\", foi um conjunto de problemas recorrentes.",
+  "macete": "\"OTAN 68\": a OTAN declarou guerra à bagunça do software.<br>Triângulo da ES: prazo, custo, qualidade."
+ },
+ {
+  "id": "ppf",
+  "title": "Processo × Método × Ferramenta (o brigadeiro)",
+  "eyebrow": "Parte 1 · Fundamentos",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Na receita de brigadeiro: os passos 1 a 5 são o <strong>processo</strong>, \"mexer sem parar em fogo médio\" é o <strong>método</strong>, a panela e a colher de pau são a <strong>ferramenta</strong>.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Processo</strong> = O QUÊ fazer e em que ordem: atividades, artefatos, papéis",
+   "<strong>Método</strong> = COMO fazer uma atividade: notação, termos, critérios",
+   "<strong>Ferramenta</strong> = apoio automatizado: <strong>CASE</strong> (Computer Aided SE)",
+   "Exemplos de método: Análise Estruturada (DFD), OOSE (casos de uso), XP (estórias)"
+  ],
+  "alert": "Fora da revisão, mas é a base da matéria inteira. Saiba classificar um exemplo: \"diagrama de casos de uso\" é método; \"Astah/Jira\" é ferramenta.",
+  "macete": "Processo = receita.<br>Método = jeito de mexer.<br>Ferramenta = colher de pau."
+ },
+ {
+  "id": "elementos",
+  "title": "Atividade, Artefato e Papel",
+  "eyebrow": "Parte 1 · Fundamentos",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Numa cozinha de restaurante: \"preparar o molho\" é a atividade, o molho pronto é o artefato e o \"chef de molhos\" é o papel. Todo processo tem esses três.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Atividade</strong>: o que é feito, quebrado em <strong>tarefas</strong>",
+   "<strong>Artefato</strong>: informação <strong>produzida, modificada ou consumida</strong>",
+   "Artefato não é só código: <strong>documentos, modelos UML, cronogramas, pautas</strong>",
+   "<strong>Papel</strong>: responsabilidade, não pessoa (analista, arquiteto, testador)",
+   "Uma pessoa pode ter vários papéis"
+  ],
+  "alert": "Reaparece no RUP (disciplinas = atividades + papéis + artefatos) e no Scrum, que tem papéis e artefatos próprios (Q20 da revisão).",
+  "macete": "\"QUEM faz O QUÊ e GERA o quê\":<br>Papel, Atividade, Artefato."
+ },
+ {
+  "id": "mitos-gerentes",
+  "title": "Mitos dos gerentes: \"é só pôr mais gente\"",
+  "eyebrow": "Parte 1 · Mitos do software",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Nove mulheres não fazem um bebê em um mês. Colocar gente nova num projeto atrasado gera treinamento e mais conversa, não velocidade.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Mito 1:</strong> \"temos um manual de padrões, basta\" → cada projeto é <strong>único</strong>, não é seguir receita",
+   "<strong>Mito 2:</strong> \"atrasou? aumenta a equipe\" → <strong>atrasa ainda mais</strong> (ambientação, comunicação)",
+   "<strong>Mito 3:</strong> \"terceirizei, posso relaxar\" → exige <strong>acompanhamento contínuo</strong>",
+   "Software <strong>não é linha de produção</strong>"
+  ],
+  "alert": "Não caiu na revisão. Se cair, vem como V/F: qualquer frase que trate software como fábrica ou \"receita pronta\" é falsa.",
+  "macete": "Gerente acredita em 3 atalhos: Manual, Mais gente, Terceirizar. Os três são furada."
+ },
+ {
+  "id": "mitos-clientes",
+  "title": "Mitos dos clientes: mudar depois sai caro",
+  "eyebrow": "Parte 1 · Mitos do software",
+  "badge": "🔥 CAIU NA REVISÃO · Q10",
+  "hot": true,
+  "kind": "content",
+  "concept": "Mudar a planta da casa no papel é apagar uma linha; mudar com a casa pronta é quebrar parede. Quanto mais tarde a mudança, mais cara.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Mito 4:</strong> \"descrição geral basta, detalha depois\" → leva projetos ao <strong>fracasso</strong>",
+   "<strong>Mito 5:</strong> \"mudança não é problema, software é flexível\" → custo depende de <strong>quando</strong> muda",
+   "<strong>Boehm (1981):</strong> o custo de corrigir um defeito <strong>cresce muito</strong> a cada fase",
+   "Requisitos incluem: funções, desempenho, interfaces, restrições, <strong>critérios de aceitação</strong>"
+  ],
+  "alert": "Q10: \"o impacto das mudanças cresce <strong>linearmente</strong>\" é <strong>FALSO</strong>. A ideia clássica é que cresce <strong>exponencialmente</strong>. E \"é fácil prever quais requisitos vão mudar\" também é falso.",
+  "macete": "Custo de mudança é bola de neve, não escada: cresce exponencial, nunca linear."
+ },
+ {
+  "id": "mitos-devs",
+  "title": "Mitos dos devs: \"entreguei, acabou\"",
+  "eyebrow": "Parte 1 · Mitos do software",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Comprar um carro não é o fim: tem revisão, troca de óleo e conserto por anos. Com software é igual: a maior parte do esforço vem depois da entrega.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Mito 6:</strong> \"entregou, acabou\" → <strong>50% a 70%</strong> do esforço é <strong>pós-entrega</strong>",
+   "<strong>Mito 7:</strong> \"só avalio qualidade rodando\" → qualidade <strong>desde o início</strong>",
+   "<strong>Mito 8:</strong> \"só entrego o executável\" → entrega é a <strong>Configuração do Software</strong>",
+   "<strong>Mito 9:</strong> \"ES = papelada inútil\" → documentar <strong>ajuda a pensar</strong> e achar erros"
+  ],
+  "alert": "Fora da revisão. O número \"50% a 70% após a entrega\" é o dado mais provável de virar alternativa.",
+  "macete": "Software é carro, não pizza: a entrega é o começo da vida, não o fim."
+ },
+ {
+  "id": "d2",
+  "title": "Processo de desenvolvimento",
+  "kind": "divider",
+  "num": "02",
+  "sub": "Do problema do mundo real à solução no computador: as atividades que todo processo tem, segundo Polya, Pressman e Sommerville, e os 7 princípios de Hooker.",
+  "badge": ""
+ },
+ {
+  "id": "polya",
+  "title": "Polya: 4 passos viram 4 atividades",
+  "eyebrow": "Parte 2 · Processo",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Resolver um problema de matemática: entender o enunciado, montar a estratégia, fazer a conta e conferir. Software segue os mesmos 4 passos.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "Entender o problema → <strong>Especificação</strong> (requisitos, regras, restrições)",
+   "Planejar a solução → <strong>Projeto</strong> (arquitetural + detalhado)",
+   "Executar o plano → <strong>Implementação</strong> (código)",
+   "Avaliar o resultado → <strong>Validação</strong> (testes de aceitação / homologação)"
+  ],
+  "alert": "Fora da revisão. Detalhe que confunde: <strong>projeto arquitetural</strong> = grandes componentes e como se comunicam; <strong>detalhado</strong> = princípios e padrões de projeto.",
+  "macete": "\"EPIV\": Entende, Planeja, Implementa, Valida. É a prova de matemática da ES."
+ },
+ {
+  "id": "pressman-somm",
+  "title": "Pressman (5) vs Sommerville (4)",
+  "eyebrow": "Parte 2 · Processo",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "Dois cozinheiros descrevendo a mesma receita com palavras diferentes. Os nomes mudam, mas o núcleo é o mesmo: entender, construir, verificar, entregar.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Pressman:</strong> Comunicação, Planejamento, Modelagem, Construção, Entrega",
+   "<strong>Sommerville:</strong> Especificação, Desenvolvimento, Validação, Evolução",
+   "Atividades podem ser <strong>acrescentadas</strong> e <strong>decompostas</strong>",
+   "Não rodam uma vez só nem em <strong>sequência estrita</strong>",
+   "Processo sempre existe: <strong>implícito</strong> (difícil pro novato) ou <strong>explícito</strong>"
+  ],
+  "alert": "Fora da revisão. Pegadinha provável: \"Evolução\" é do Sommerville; \"Comunicação\" e \"Entrega\" são do Pressman.",
+  "macete": "Pressman = \"CPMCE\" (5, Começa Papeando).<br>Sommerville = \"EDVE\" (4, termina Evoluindo)."
+ },
+ {
+  "id": "hooker",
+  "title": "Os 7 princípios de Hooker",
+  "eyebrow": "Parte 2 · Processo",
+  "badge": "📚 BASE TEÓRICA",
+  "hot": false,
+  "kind": "content",
+  "concept": "São os \"mandamentos\" do bom engenheiro, como regras de convivência numa república: servem para qualquer processo.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "1. Tem que existir uma <strong>razão</strong> (agregar valor ao usuário)",
+   "2. <strong>KISS</strong>: simples, mas não simplório",
+   "3. Mantenha a <strong>visão</strong> (integridade conceitual)",
+   "4. O que você produz, <strong>outros consomem</strong>",
+   "5. Esteja pronto para o <strong>futuro</strong>",
+   "6. Planeje para <strong>reutilização</strong>",
+   "7. <strong>Pense!</strong>"
+  ],
+  "alert": "Fora da revisão. Cuidado: \"simples\" não é \"rápido e de qualquer jeito\"; fazer simples costuma dar <strong>mais</strong> trabalho.",
+  "macete": "\"Razão Simples Vê Outros no Futuro Reusando o Pensamento.\"<br>(R, S, V, O, F, R, P)"
+ },
+ {
+  "id": "d3",
+  "title": "Modelos de ciclo de vida",
+  "kind": "divider",
+  "num": "03",
+  "sub": "Cascata, prototipagem, evolucionário, incremental, espiral e RUP.",
+  "badge": "🔥 Revisão: Q4, Q10, Q15, Q17, Q19"
+ },
+ {
+  "id": "seq-evo",
+  "title": "Sequencial vs Evolucionário",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "🔥 CAIU NA REVISÃO · Q10, Q15",
+  "hot": true,
+  "kind": "content",
+  "concept": "Sequencial é encomendar um bolo de casamento: tudo definido antes, uma entrega final. Evolucionário é uma série: lança episódios, ouve o público e ajusta a próxima temporada.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Sequencial:</strong> requisitos <strong>100% definidos antes</strong>, entrega <strong>versão definitiva</strong>",
+   "Ex.: controle de <strong>avião, satélite, equipamento médico, carro</strong>",
+   "<strong>Evolucionário:</strong> requisitos <strong>gradativos</strong>, entregas em <strong>incrementos</strong>",
+   "Ex.: <strong>sistemas de informação, apps web e de celular</strong>",
+   "<strong>Prescritivo</strong> = prescreve atividades, fluxo, papéis, artefatos"
+  ],
+  "alert": "Q10: sequencial (cascata) é indicado para <strong>requisitos bem definidos e estáveis</strong> (V). Q15: cliente com <strong>urgência</strong> e escopo que pode ser fatiado → <strong>evolutivo / incremental</strong>.",
+  "macete": "Requisito parado → Sequencial.<br>Requisito mexendo → Evolucionário.<br>\"Estável = Escada; Instável = Iterar.\""
+ },
+ {
+  "id": "cascata",
+  "title": "Cascata: uma fase de cada vez (Royce, 1970)",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "🔥 CAIU NA REVISÃO · Q4, Q10, Q15, Q17",
+  "hot": true,
+  "kind": "content",
+  "concept": "É uma linha de dominós: uma fase só cai depois que a anterior caiu inteira, e a saída de uma é a entrada da próxima. Não tem volta.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "Fases: Requisitos → Análise → Projeto → Implementação → Teste → Implantação → Manutenção",
+   "<strong>Mais antigo</strong>, <strong>sistemático e estritamente sequencial</strong>",
+   "Próxima fase só começa com <strong>100% da atual concluída</strong>",
+   "Abstração <strong>diminui</strong> e formalismo <strong>aumenta</strong> ao avançar",
+   "Gerenciamento <strong>fácil</strong> (atividades fixas) e <strong>muita documentação</strong>"
+  ],
+  "alert": "Q4 pede a INCORRETA: \"define <strong>entregas intermediárias</strong>\" é falso, cascata entrega <strong>só no fim</strong>. Q15: cascata <strong>não</strong> se adapta a mudanças. Q17: fases sequenciais = fácil planejar e controlar.",
+  "macete": "Cascata = água só desce.<br>Não volta, não entrega no meio do caminho."
+ },
+ {
+  "id": "cascata-prob",
+  "title": "Por que a cascata quebra na vida real",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "🔥 CAIU NA REVISÃO · Q4, Q15",
+  "hot": true,
+  "kind": "content",
+  "concept": "É como escrever o TCC inteiro sem mostrar ao orientador: se o tema estava errado, você só descobre na banca.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "Projetos reais <strong>raramente</strong> são sequenciais",
+   "Cliente não consegue dizer <strong>tudo no início</strong>",
+   "<strong>Difícil acomodar mudanças</strong>: não prevê refazer fases",
+   "Versão usável só <strong>muito tarde</strong>: \"cliente paciente\"",
+   "Erro de requisito só aparece <strong>no fim</strong>; sequência gera <strong>gargalos</strong>"
+  ],
+  "alert": "Q15 (piscicultura com <strong>urgência</strong>): \"usar cascata porque se adapta a mudanças\" é <strong>FALSO</strong>. Cascata é o oposto: rígida e lenta para entregar.",
+  "macete": "Viu \"urgência\" ou \"requisitos mudando\" na questão? Cascata é a resposta errada."
+ },
+ {
+  "id": "prototipagem",
+  "title": "Prototipagem: a maquete antes do prédio",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "📚 BASE (aparece citada na Q15)",
+  "hot": false,
+  "kind": "content",
+  "concept": "A construtora mostra a maquete e o apartamento decorado para você dizer \"não era isso\" antes de levantar o prédio. Depois, a maquete vai pro lixo.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "Para requisitos <strong>obscuros ou mal entendidos</strong> e dúvidas de <strong>UI</strong>",
+   "Ciclo: coleta → <strong>projeto rápido</strong> → protótipo → avaliação → refinamento",
+   "O protótipo deve ser <strong>descartado</strong>; produto é feito com qualidade",
+   "Risco: usuário acha que <strong>já está pronto</strong>",
+   "Raramente sozinho: <strong>Prototipagem + Cascata</strong> é o combo clássico"
+  ],
+  "alert": "Não teve questão própria, mas a Q15 mistura \"prototipação\" com espiral. Lembre: prototipar <strong>reduz risco de requisito</strong>, não acelera a entrega final.",
+  "macete": "Protótipo é rascunho de prova: serve para pensar, não para entregar."
+ },
+ {
+  "id": "evolucionario",
+  "title": "Evolucionário: lança, ouve, melhora",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "🔥 CAIU NA REVISÃO · Q15",
+  "hot": true,
+  "kind": "content",
+  "concept": "Como um app que sai em versão 1.0 simples e vai ganhando atualizações a partir dos comentários na loja, até virar a versão final.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "Versão inicial → <strong>feedback do usuário</strong> → várias versões",
+   "Começa pelo mais <strong>bem compreendido</strong> ou de <strong>maior valor</strong>",
+   "Bom para sistemas de <strong>pequeno e médio porte</strong>",
+   "✅ Versão útil <strong>mais cedo</strong>, especificação <strong>gradativa</strong>",
+   "❌ Estrutura <strong>degrada</strong>, pouca <strong>documentação</strong>, ruim p/ sistemas grandes"
+  ],
+  "alert": "Q15: com <strong>extrema urgência</strong>, uma abordagem <strong>evolutiva</strong> faz sentido porque o cliente recebe uma versão útil, mesmo incompleta, mais rápido.",
+  "macete": "Evolucionário = Pokémon: começa pequeno e evolui a cada batalha (feedback)."
+ },
+ {
+  "id": "incremental",
+  "title": "Incremental: o sistema em fatias",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "🔥 CAIU NA REVISÃO · Q15",
+  "hot": true,
+  "kind": "content",
+  "concept": "Como pizza em fatias: cada iteração entrega uma fatia que já dá pra comer (versão operacional), enquanto as próximas ainda estão no forno.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "Ciclos = <strong>iterações</strong>; partes = <strong>incrementos</strong>",
+   "Cada iteração é um <strong>miniprojeto</strong> (pode ser uma mini-cascata)",
+   "Toda iteração gera <strong>versão operacional</strong>; pode haver <strong>paralelismo</strong>",
+   "Entrega <strong>por estágio</strong>, <strong>evolutiva</strong> ou as duas",
+   "❌ Difícil mapear requisitos dependentes; exige <strong>refatoração</strong>"
+  ],
+  "alert": "Q15: incremental é <strong>V</strong> porque a parte dos <strong>alevinos</strong> pode ir para uso enquanto engorda e venda ainda estão sendo feitas. É o caso típico de \"entregar por partes\".",
+  "macete": "Iteração = a volta.<br>Incremento = a fatia que a volta entrega."
+ },
+ {
+  "id": "espiral",
+  "title": "Espiral: guiado por risco",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "🔥 CAIU NA REVISÃO · Q15",
+  "hot": true,
+  "kind": "content",
+  "concept": "É planejar uma missão espacial: a cada volta você define o objetivo, pergunta \"o que pode dar errado?\", constrói um pouco e decide se continua.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "4 setores: <strong>Objetivos → Análise de riscos → Desenvolvimento e validação → Planejamento</strong>",
+   "<strong>Sem fases fixas</strong>: a gerência decide o que cada volta faz",
+   "Para sistemas <strong>grandes, complexos, de missão crítica</strong>",
+   "<strong>Abrange outros modelos</strong> (cascata, prototipagem, incremental)",
+   "❌ Difícil prever o fim; exige gente <strong>experiente</strong>"
+  ],
+  "alert": "Q15: \"escopo <strong>pequeno</strong>, então use espiral para entregar mais rápido\" é <strong>FALSO</strong>. Espiral é para projeto <strong>grande e arriscado</strong> e não é conhecido por rapidez.",
+  "macete": "Espiral = Risco. Ouviu \"análise de riscos\", pense em espiral. Pequeno e urgente? Nunca espiral."
+ },
+ {
+  "id": "rup-fases",
+  "title": "UP/RUP: as 4 fases",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "🔥 CAIU NA REVISÃO · Q19",
+  "hot": true,
+  "kind": "content",
+  "concept": "Fazer uma festa: Concepção = \"vale a pena e quanto custa?\"; Elaboração = planta do salão e riscos; Construção = montar tudo; Transição = abrir as portas.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>Concepção</strong>: escopo, riscos, 10–20% dos casos de uso. <strong>Menor fase</strong>",
+   "<strong>Elaboração</strong>: <strong>mitiga riscos</strong>, 80% dos requisitos, <strong>valida a arquitetura</strong>",
+   "<strong>Construção</strong>: codifica e testa. <strong>Maior fase</strong>",
+   "<strong>Transição</strong>: testes no usuário, implantação, treinamento",
+   "Criado por <strong>Jacobson, Rumbaugh e Booch</strong>: iterativo, centrado na arquitetura, guiado por casos de uso"
+  ],
+  "alert": "Q19: \"compreender o domínio, <strong>definir e validar a arquitetura</strong> e mitigar os principais riscos\" = <strong>ELABORAÇÃO</strong>. \"Manutenção\" não é fase do RUP.",
+  "macete": "\"CECT\": Concebe, Elabora, Constrói, Transita.<br>Arquitetura e risco? ELAbora: é com ELA."
+ },
+ {
+  "id": "rup-disc",
+  "title": "RUP: 4 fases × 9 disciplinas",
+  "eyebrow": "Parte 3 · Ciclos de vida",
+  "badge": "📚 BASE (complementa a Q19)",
+  "hot": false,
+  "kind": "content",
+  "concept": "Fases são os meses do semestre; disciplinas são as matérias. Toda matéria roda o semestre inteiro, só muda a intensidade de cada uma em cada mês.",
+  "bulletsTitle": "Pontos de memorização",
+  "bullets": [
+   "<strong>6 básicas:</strong> Modelagem de negócio, Requisitos, Análise e Projeto, Implementação, Testes, Implantação",
+   "<strong>3 de apoio:</strong> Gerência de projeto, Gerência de configuração, Ambiente",
+   "O <strong>esforço</strong> de cada disciplina <strong>varia conforme a fase</strong>",
+   "Cada fase pode ter <strong>uma ou várias iterações</strong>",
+   "UP é o framework; <strong>RUP</strong> é o produto comercial da <strong>IBM/Rational</strong>"
+  ],
+  "alert": "Não caiu direto. Pegadinha possível: achar que as disciplinas acontecem uma por fase, como na cascata. No RUP elas são <strong>paralelas</strong>.",
+  "macete": "RUP = 4 + 9. \"4 estações do ano, 9 matérias o ano todo.\""
+ },
+ {
+  "id": "ciclos-tabela",
+  "title": "Qual ciclo usar? A cola de uma tela",
+  "eyebrow": "Parte 3 · Esquema mental",
+  "badge": "🔥 RESOLVE A Q15 INTEIRA",
+  "hot": true,
+  "kind": "table",
+  "tables": [
+   {
+    "head": [
+     "Modelo",
+     "Use quando...",
+     "Palavra-gatilho na questão"
+    ],
+    "rows": [
+     [
+      "<strong>Cascata</strong>",
+      "Requisitos bem definidos e estáveis",
+      "\"sequencial\", \"100% da fase\", \"documentação\""
+     ],
+     [
+      "<strong>Prototipagem</strong>",
+      "Requisitos obscuros, dúvida de UI",
+      "\"maquete\", \"validar requisitos\", \"descartar\""
+     ],
+     [
+      "<strong>Evolucionário</strong>",
+      "Urgência, sistema pequeno/médio",
+      "\"feedback\", \"versões\", \"urgência\""
+     ],
+     [
+      "<strong>Incremental</strong>",
+      "Dá para entregar em partes",
+      "\"partes disponibilizadas enquanto...\""
+     ],
+     [
+      "<strong>Espiral</strong>",
+      "Grande, complexo, crítico",
+      "\"análise de riscos\", \"missão crítica\""
+     ],
+     [
+      "<strong>RUP</strong>",
+      "Projeto OO iterativo com arquitetura forte",
+      "\"casos de uso\", \"4 fases\", \"Elaboração\""
+     ]
+    ]
+   }
+  ],
+  "concept": "",
+  "alert": "",
+  "macete": "Q15 = F, F, V, V: cascata não aceita mudança, espiral não é para escopo pequeno, incremental e evolutivo atendem a urgência."
+ }
+];
+
+/* =====================================================================
+   ROTEIRO DE NARRAÇÃO + LEGENDAS
+   Cada objeto é uma legenda: { slideId, textoLegenda, audioUrl, duracao, alvo }
+   - textoLegenda: o texto mostrado na legenda e lido pela voz.
+   - audioUrl: deixe "" para usar a voz do navegador (speechSynthesis, pt-BR).
+     Preencha com o caminho de um MP3 (ElevenLabs, Google Cloud TTS...) e o
+     player toca esse arquivo no lugar da voz sintetizada, no mesmo tempo da legenda.
+   - duracao: segundos em 1x (estimativa; usada na barra de progresso e como
+     tempo da legenda quando não há voz disponível).
+   - alvo: qual elemento do slide é destacado enquanto essa legenda está no ar.
+   ===================================================================== */
+const ROTEIRO = [
+ {
+  "slideId": "cover",
+  "textoLegenda": "Bem-vindo à vídeo-aula de revisão de Engenharia de Software 1, para a P1. Revisão para a P1, do jeito que gruda.",
+  "audioUrl": "",
+  "duracao": 8.1,
+  "alvo": "title"
+ },
+ {
+  "slideId": "cover",
+  "textoLegenda": "Fundamentos, processo e ciclos de vida, com analogias, comparações e macetes para memorizar.",
+  "audioUrl": "",
+  "duracao": 7.2,
+  "alvo": "sub"
+ },
+ {
+  "slideId": "cover",
+  "textoLegenda": "O símbolo de fogo marca o que caiu na revisão. O livro marca a base teórica.",
+  "audioUrl": "",
+  "duracao": 5.6,
+  "alvo": "chips"
+ },
+ {
+  "slideId": "mapa",
+  "textoLegenda": "Antes de começar, veja onde está o peso da prova.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "title"
+ },
+ {
+  "slideId": "mapa",
+  "textoLegenda": "Bloco 1, Fundamentos: O que é ES, crise do software, processo × método × ferramenta, mitos. Base teórica (Q10 toca nos mitos).",
+  "audioUrl": "",
+  "duracao": 9.1,
+  "alvo": "card0"
+ },
+ {
+  "slideId": "mapa",
+  "textoLegenda": "Bloco 2, Processo: Polya, atividades de Pressman e Sommerville, 7 princípios de Hooker. Base teórica.",
+  "audioUrl": "",
+  "duracao": 7.4,
+  "alvo": "card1"
+ },
+ {
+  "slideId": "mapa",
+  "textoLegenda": "Bloco 3, Ciclos de vida: Cascata, prototipagem, evolucionário, incremental, espiral, RUP. Na revisão: Q4, Q10, Q15, Q17, Q19.",
+  "audioUrl": "",
+  "duracao": 9.0,
+  "alvo": "card2"
+ },
+ {
+  "slideId": "mapa",
+  "textoLegenda": "Métodos ágeis, arquitetura e a resolução das questões estão nas próximas aulas.",
+  "audioUrl": "",
+  "duracao": 8.1,
+  "alvo": "foot"
+ },
+ {
+  "slideId": "d1",
+  "textoLegenda": "Parte 1: Fundamentos da Engenharia de Software.",
+  "audioUrl": "",
+  "duracao": 3.6,
+  "alvo": "title"
+ },
+ {
+  "slideId": "d1",
+  "textoLegenda": "Por que programar não basta, o que a ES junta (processo, método, ferramenta) e os mitos que a prova adora desmentir.",
+  "audioUrl": "",
+  "duracao": 8.4,
+  "alvo": "sub"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "ES = programar com método de engenheiro. Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.4,
+  "alvo": "title"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "A ideia central: Uma casinha de cachorro você monta no improviso; um prédio de 40 andares precisa de engenharia.",
+  "audioUrl": "",
+  "duracao": 8.1,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Software grande é o prédio: precisa de abordagem sistemática.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Pontos para memorizar. IEEE: abordagem sistemática, disciplinada e quantificável.",
+  "audioUrl": "",
+  "duracao": 6.0,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Boehm: conhecimento científico aplicado + a documentação.",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Bauer: princípios de engenharia para software econômico e confiável.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Cobre desenvolver, operar e manter, não só codar.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Motivo: complexidade (Windows 11 tem +60 milhões de linhas).",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Alerta de prova! Não apareceu na revisão. Se cair, é para ligar autor à frase: as três palavras do IEEE são as mais citadas.",
+  "audioUrl": "",
+  "duracao": 9.0,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "es-def",
+  "textoLegenda": "Macete: IEEE = \"SDQ\": Sistemática, Disciplinada, Quantificável. Bauer = Bolso (econômico). Boehm = Biblioteca (científico).",
+  "audioUrl": "",
+  "duracao": 8.9,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Crise do Software: a ES nasce em 1968. Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "title"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "A ideia central: Anos 60: o hardware ficou barato e potente, todo mundo quis software maior, e os projetos viraram obra pública atrasada: estouro de prazo, custo e cliente insatisfeito.",
+  "audioUrl": "",
+  "duracao": 13.2,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Pontos para memorizar. Causa: hardware mais barato + demanda por software complexo.",
+  "audioUrl": "",
+  "duracao": 6.1,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Sintomas: custos e prazos estourados, software que não atende.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Crise = conjunto de problemas no desenvolvimento.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Conferência da OTAN, 1968: marco de criação da ES.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Desafio eterno da ES: custo, prazo e qualidade.",
+  "audioUrl": "",
+  "duracao": 3.6,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Alerta de prova! Fora da revisão. Pegadinha clássica: a crise não foi \"um bug famoso\", foi um conjunto de problemas recorrentes.",
+  "audioUrl": "",
+  "duracao": 9.2,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "crise",
+  "textoLegenda": "Macete: \"OTAN 68\": a OTAN declarou guerra à bagunça do software. Triângulo da ES: prazo, custo, qualidade.",
+  "audioUrl": "",
+  "duracao": 7.7,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "Processo × Método × Ferramenta (o brigadeiro). Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.8,
+  "alvo": "title"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "A ideia central: Na receita de brigadeiro: os passos 1 a 5 são o processo, \"mexer sem parar em fogo médio\" é o método, a panela e a colher de pau são a ferramenta.",
+  "audioUrl": "",
+  "duracao": 11.6,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "Pontos para memorizar. Processo = O QUÊ fazer e em que ordem: atividades, artefatos, papéis.",
+  "audioUrl": "",
+  "duracao": 6.7,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "Método = COMO fazer uma atividade: notação, termos, critérios.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "Ferramenta = apoio automatizado: CASE (Computer Aided SE).",
+  "audioUrl": "",
+  "duracao": 4.4,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "Exemplos de método: Análise Estruturada (DFD), OOSE (casos de uso), XP (estórias).",
+  "audioUrl": "",
+  "duracao": 6.1,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "Alerta de prova! Fora da revisão, mas é a base da matéria inteira. Saiba classificar um exemplo: \"diagrama de casos de uso\" é método; \"Astah/Jira\" é ferramenta.",
+  "audioUrl": "",
+  "duracao": 11.4,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "ppf",
+  "textoLegenda": "Macete: Processo = receita. Método = jeito de mexer. Ferramenta = colher de pau.",
+  "audioUrl": "",
+  "duracao": 5.9,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Atividade, Artefato e Papel. Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "title"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "A ideia central: Numa cozinha de restaurante: \"preparar o molho\" é a atividade, o molho pronto é o artefato e o \"chef de molhos\" é o papel. Todo processo tem esses três.",
+  "audioUrl": "",
+  "duracao": 12.1,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Pontos para memorizar. Atividade: o que é feito, quebrado em tarefas.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Artefato: informação produzida, modificada ou consumida.",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Artefato não é só código: documentos, modelos UML, cronogramas, pautas.",
+  "audioUrl": "",
+  "duracao": 5.3,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Papel: responsabilidade, não pessoa (analista, arquiteto, testador).",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Uma pessoa pode ter vários papéis.",
+  "audioUrl": "",
+  "duracao": 2.7,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Alerta de prova! Reaparece no RUP (disciplinas = atividades + papéis + artefatos) e no Scrum, que tem papéis e artefatos próprios (Q20 da revisão).",
+  "audioUrl": "",
+  "duracao": 10.5,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "elementos",
+  "textoLegenda": "Macete: \"QUEM faz O QUÊ e GERA o quê\":. Papel, Atividade, Artefato.",
+  "audioUrl": "",
+  "duracao": 5.0,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "Mitos dos gerentes: \"é só pôr mais gente\". Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.5,
+  "alvo": "title"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "A ideia central: Nove mulheres não fazem um bebê em um mês. Colocar gente nova num projeto atrasado gera treinamento e mais conversa, não velocidade.",
+  "audioUrl": "",
+  "duracao": 10.7,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "Pontos para memorizar. Mito 1: \"temos um manual de padrões, basta\" → cada projeto é único, não é seguir receita.",
+  "audioUrl": "",
+  "duracao": 8.1,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "Mito 2: \"atrasou? aumenta a equipe\" → atrasa ainda mais (ambientação, comunicação).",
+  "audioUrl": "",
+  "duracao": 6.1,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "Mito 3: \"terceirizei, posso relaxar\" → exige acompanhamento contínuo.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "Software não é linha de produção.",
+  "audioUrl": "",
+  "duracao": 2.7,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "Alerta de prova! Não caiu na revisão. Se cair, vem como V/F: qualquer frase que trate software como fábrica ou \"receita pronta\" é falsa.",
+  "audioUrl": "",
+  "duracao": 9.8,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "mitos-gerentes",
+  "textoLegenda": "Macete: Gerente acredita em 3 atalhos: Manual, Mais gente, Terceirizar. Os três são furada.",
+  "audioUrl": "",
+  "duracao": 6.7,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "Mitos dos clientes: mudar depois sai caro. Atenção: esse tema caiu na revisão, em Q10.",
+  "audioUrl": "",
+  "duracao": 6.3,
+  "alvo": "title"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "A ideia central: Mudar a planta da casa no papel é apagar uma linha; mudar com a casa pronta é quebrar parede. Quanto mais tarde a mudança, mais cara.",
+  "audioUrl": "",
+  "duracao": 10.7,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "Pontos para memorizar. Mito 4: \"descrição geral basta, detalha depois\" → leva projetos ao fracasso.",
+  "audioUrl": "",
+  "duracao": 7.2,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "Mito 5: \"mudança não é problema, software é flexível\" → custo depende de quando muda.",
+  "audioUrl": "",
+  "duracao": 6.3,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "Boehm (1981): o custo de corrigir um defeito cresce muito a cada fase.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "Requisitos incluem: funções, desempenho, interfaces, restrições, critérios de aceitação.",
+  "audioUrl": "",
+  "duracao": 6.5,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "Alerta de prova! Q10: \"o impacto das mudanças cresce linearmente\" é FALSO. A ideia clássica é que cresce exponencialmente.",
+  "audioUrl": "",
+  "duracao": 8.8,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "E \"é fácil prever quais requisitos vão mudar\" também é falso.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "mitos-clientes",
+  "textoLegenda": "Macete: Custo de mudança é bola de neve, não escada: cresce exponencial, nunca linear.",
+  "audioUrl": "",
+  "duracao": 6.3,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "Mitos dos devs: \"entreguei, acabou\". Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "title"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "A ideia central: Comprar um carro não é o fim: tem revisão, troca de óleo e conserto por anos. Com software é igual: a maior parte do esforço vem depois da entrega.",
+  "audioUrl": "",
+  "duracao": 11.7,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "Pontos para memorizar. Mito 6: \"entregou, acabou\" → 50% a 70% do esforço é pós-entrega.",
+  "audioUrl": "",
+  "duracao": 6.4,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "Mito 7: \"só avalio qualidade rodando\" → qualidade desde o início.",
+  "audioUrl": "",
+  "duracao": 4.9,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "Mito 8: \"só entrego o executável\" → entrega é a Configuração do Software.",
+  "audioUrl": "",
+  "duracao": 5.4,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "Mito 9: \"ES = papelada inútil\" → documentar ajuda a pensar e achar erros.",
+  "audioUrl": "",
+  "duracao": 5.4,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "Alerta de prova! Fora da revisão. O número \"50% a 70% após a entrega\" é o dado mais provável de virar alternativa.",
+  "audioUrl": "",
+  "duracao": 8.3,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "mitos-devs",
+  "textoLegenda": "Macete: Software é carro, não pizza: a entrega é o começo da vida, não o fim.",
+  "audioUrl": "",
+  "duracao": 5.7,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "d2",
+  "textoLegenda": "Parte 2: Processo de desenvolvimento.",
+  "audioUrl": "",
+  "duracao": 3.0,
+  "alvo": "title"
+ },
+ {
+  "slideId": "d2",
+  "textoLegenda": "Do problema do mundo real à solução no computador: as atividades que todo processo tem, segundo Polya, Pressman e Sommerville, e os 7 princípios de Hooker.",
+  "audioUrl": "",
+  "duracao": 11.1,
+  "alvo": "sub"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "Polya: 4 passos viram 4 atividades. Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.0,
+  "alvo": "title"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "A ideia central: Resolver um problema de matemática: entender o enunciado, montar a estratégia, fazer a conta e conferir. Software segue os mesmos 4 passos.",
+  "audioUrl": "",
+  "duracao": 11.2,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "Pontos para memorizar. Entender o problema → Especificação (requisitos, regras, restrições).",
+  "audioUrl": "",
+  "duracao": 6.7,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "Planejar a solução → Projeto (arquitetural + detalhado).",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "Executar o plano → Implementação (código).",
+  "audioUrl": "",
+  "duracao": 3.3,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "Avaliar o resultado → Validação (testes de aceitação / homologação).",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "Alerta de prova! Fora da revisão. Detalhe que confunde: projeto arquitetural = grandes componentes e como se comunicam; detalhado = princípios e padrões de projeto.",
+  "audioUrl": "",
+  "duracao": 11.7,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "polya",
+  "textoLegenda": "Macete: \"EPIV\": Entende, Planeja, Implementa, Valida. É a prova de matemática da ES.",
+  "audioUrl": "",
+  "duracao": 6.2,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Pressman (5) versus Sommerville (4). Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "title"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "A ideia central: Dois cozinheiros descrevendo a mesma receita com palavras diferentes. Os nomes mudam, mas o núcleo é o mesmo: entender, construir, verificar, entregar.",
+  "audioUrl": "",
+  "duracao": 12.0,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Pontos para memorizar. Pressman: Comunicação, Planejamento, Modelagem, Construção, Entrega.",
+  "audioUrl": "",
+  "duracao": 6.7,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Sommerville: Especificação, Desenvolvimento, Validação, Evolução.",
+  "audioUrl": "",
+  "duracao": 4.9,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Atividades podem ser acrescentadas e decompostas.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Não rodam uma vez só nem em sequência estrita.",
+  "audioUrl": "",
+  "duracao": 3.6,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Processo sempre existe: implícito (difícil pro novato) ou explícito.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Alerta de prova! Fora da revisão. Pegadinha provável: \"Evolução\" é do Sommerville; \"Comunicação\" e \"Entrega\" são do Pressman.",
+  "audioUrl": "",
+  "duracao": 9.0,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "pressman-somm",
+  "textoLegenda": "Macete: Pressman = \"CPMCE\" (5, Começa Papeando). Sommerville = \"EDVE\" (4, termina Evoluindo).",
+  "audioUrl": "",
+  "duracao": 6.8,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "Os 7 princípios de Hooker. Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 4.4,
+  "alvo": "title"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "A ideia central: São os \"mandamentos\" do bom engenheiro, como regras de convivência numa república: servem para qualquer processo.",
+  "audioUrl": "",
+  "duracao": 9.4,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "Pontos para memorizar. 1. Tem que existir uma razão (agregar valor ao usuário).",
+  "audioUrl": "",
+  "duracao": 5.8,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "2. KISS: simples, mas não simplório.",
+  "audioUrl": "",
+  "duracao": 2.9,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "3. Mantenha a visão (integridade conceitual).",
+  "audioUrl": "",
+  "duracao": 3.5,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "4. O que você produz, outros consomem.",
+  "audioUrl": "",
+  "duracao": 3.0,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "5. Esteja pronto para o futuro.",
+  "audioUrl": "",
+  "duracao": 2.5,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "6. Planeje para reutilização.",
+  "audioUrl": "",
+  "duracao": 2.4,
+  "alvo": "b5"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "7. Pense!",
+  "audioUrl": "",
+  "duracao": 2.0,
+  "alvo": "b6"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "Alerta de prova! Fora da revisão. Cuidado: \"simples\" não é \"rápido e de qualquer jeito\"; fazer simples costuma dar mais trabalho.",
+  "audioUrl": "",
+  "duracao": 9.3,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "hooker",
+  "textoLegenda": "Macete: \"Razão Simples Vê Outros no Futuro Reusando o Pensamento.\". (R, S, V, O, F, R, P).",
+  "audioUrl": "",
+  "duracao": 6.6,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "d3",
+  "textoLegenda": "Parte 3: Modelos de ciclo de vida.",
+  "audioUrl": "",
+  "duracao": 2.7,
+  "alvo": "title"
+ },
+ {
+  "slideId": "d3",
+  "textoLegenda": "Cascata, prototipagem, evolucionário, incremental, espiral e RUP.",
+  "audioUrl": "",
+  "duracao": 4.9,
+  "alvo": "sub"
+ },
+ {
+  "slideId": "d3",
+  "textoLegenda": "Caiu na revisão: Q4, Q10, Q15, Q17, Q19.",
+  "audioUrl": "",
+  "duracao": 3.2,
+  "alvo": "badge"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Sequencial versus Evolucionário. Atenção: esse tema caiu na revisão, em Q10, Q15.",
+  "audioUrl": "",
+  "duracao": 6.0,
+  "alvo": "title"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "A ideia central: Sequencial é encomendar um bolo de casamento: tudo definido antes, uma entrega final.",
+  "audioUrl": "",
+  "duracao": 7.4,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Evolucionário é uma série: lança episódios, ouve o público e ajusta a próxima temporada.",
+  "audioUrl": "",
+  "duracao": 6.5,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Pontos para memorizar. Sequencial: requisitos 100% definidos antes, entrega versão definitiva.",
+  "audioUrl": "",
+  "duracao": 6.9,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Ex.: controle de avião, satélite, equipamento médico, carro.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Evolucionário: requisitos gradativos, entregas em incrementos.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Ex.: sistemas de informação, apps web e de celular.",
+  "audioUrl": "",
+  "duracao": 3.9,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Prescritivo = prescreve atividades, fluxo, papéis, artefatos.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Alerta de prova! Q10: sequencial (cascata) é indicado para requisitos bem definidos e estáveis (V).",
+  "audioUrl": "",
+  "duracao": 7.2,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Q15: cliente com urgência e escopo que pode ser fatiado → evolutivo / incremental.",
+  "audioUrl": "",
+  "duracao": 6.1,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "seq-evo",
+  "textoLegenda": "Macete: Requisito parado → Sequencial. Requisito mexendo → Evolucionário. \"Estável = Escada; Instável = Iterar.\".",
+  "audioUrl": "",
+  "duracao": 8.2,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Cascata: uma fase de cada vez (Royce, 1970). Atenção: esse tema caiu na revisão, em Q4, Q10, Q15, Q17.",
+  "audioUrl": "",
+  "duracao": 7.4,
+  "alvo": "title"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "A ideia central: É uma linha de dominós: uma fase só cai depois que a anterior caiu inteira, e a saída de uma é a entrada da próxima. Não tem volta.",
+  "audioUrl": "",
+  "duracao": 10.6,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Pontos para memorizar. Fases: Requisitos → Análise → Projeto → Implementação → Teste → Implantação → Manutenção.",
+  "audioUrl": "",
+  "duracao": 8.1,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Mais antigo, sistemático e estritamente sequencial.",
+  "audioUrl": "",
+  "duracao": 3.9,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Próxima fase só começa com 100% da atual concluída.",
+  "audioUrl": "",
+  "duracao": 3.9,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Abstração diminui e formalismo aumenta ao avançar.",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Gerenciamento fácil (atividades fixas) e muita documentação.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Alerta de prova! Q4 pede a INCORRETA: \"define entregas intermediárias\" é falso, cascata entrega só no fim. Q15: cascata não se adapta a mudanças.",
+  "audioUrl": "",
+  "duracao": 10.4,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Q17: fases sequenciais = fácil planejar e controlar.",
+  "audioUrl": "",
+  "duracao": 4.0,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "cascata",
+  "textoLegenda": "Macete: Cascata = água só desce. Não volta, não entrega no meio do caminho.",
+  "audioUrl": "",
+  "duracao": 5.6,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Por que a cascata quebra na vida real. Atenção: esse tema caiu na revisão, em Q4, Q15.",
+  "audioUrl": "",
+  "duracao": 6.3,
+  "alvo": "title"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "A ideia central: É como escrever o TCC inteiro sem mostrar ao orientador: se o tema estava errado, você só descobre na banca.",
+  "audioUrl": "",
+  "duracao": 9.0,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Pontos para memorizar. Projetos reais raramente são sequenciais.",
+  "audioUrl": "",
+  "duracao": 4.8,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Cliente não consegue dizer tudo no início.",
+  "audioUrl": "",
+  "duracao": 3.3,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Difícil acomodar mudanças: não prevê refazer fases.",
+  "audioUrl": "",
+  "duracao": 3.9,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Versão usável só muito tarde: \"cliente paciente\".",
+  "audioUrl": "",
+  "duracao": 3.8,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Erro de requisito só aparece no fim; sequência gera gargalos.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Alerta de prova! Q15 (piscicultura com urgência): \"usar cascata porque se adapta a mudanças\" é FALSO. Cascata é o oposto: rígida e lenta para entregar.",
+  "audioUrl": "",
+  "duracao": 10.8,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "cascata-prob",
+  "textoLegenda": "Macete: Viu \"urgência\" ou \"requisitos mudando\" na questão? Cascata é a resposta errada.",
+  "audioUrl": "",
+  "duracao": 6.4,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "Prototipagem: a maquete antes do prédio. Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 5.4,
+  "alvo": "title"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "A ideia central: A construtora mostra a maquete e o apartamento decorado para você dizer \"não era isso\" antes de levantar o prédio. Depois, a maquete vai pro lixo.",
+  "audioUrl": "",
+  "duracao": 11.6,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "Pontos para memorizar. Para requisitos obscuros ou mal entendidos e dúvidas de UI.",
+  "audioUrl": "",
+  "duracao": 6.1,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "Ciclo: coleta → projeto rápido → protótipo → avaliação → refinamento.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "O protótipo deve ser descartado; produto é feito com qualidade.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "Risco: usuário acha que já está pronto.",
+  "audioUrl": "",
+  "duracao": 3.1,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "Raramente sozinho: Prototipagem + Cascata é o combo clássico.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "Alerta de prova! Não teve questão própria, mas a Q15 mistura \"prototipação\" com espiral. Lembre: prototipar reduz risco de requisito, não acelera a entrega final.",
+  "audioUrl": "",
+  "duracao": 11.6,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "prototipagem",
+  "textoLegenda": "Macete: Protótipo é rascunho de prova: serve para pensar, não para entregar.",
+  "audioUrl": "",
+  "duracao": 5.6,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Evolucionário: lança, ouve, melhora. Atenção: esse tema caiu na revisão, em Q15.",
+  "audioUrl": "",
+  "duracao": 5.9,
+  "alvo": "title"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "A ideia central: Como um app que sai em versão 1.0 simples e vai ganhando atualizações a partir dos comentários na loja, até virar a versão final.",
+  "audioUrl": "",
+  "duracao": 10.5,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Pontos para memorizar. Versão inicial → feedback do usuário → várias versões.",
+  "audioUrl": "",
+  "duracao": 5.7,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Começa pelo mais bem compreendido ou de maior valor.",
+  "audioUrl": "",
+  "duracao": 4.0,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Bom para sistemas de pequeno e médio porte.",
+  "audioUrl": "",
+  "duracao": 3.4,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Versão útil mais cedo, especificação gradativa.",
+  "audioUrl": "",
+  "duracao": 3.6,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Estrutura degrada, pouca documentação, ruim p/ sistemas grandes.",
+  "audioUrl": "",
+  "duracao": 4.8,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Alerta de prova! Q15: com extrema urgência, uma abordagem evolutiva faz sentido porque o cliente recebe uma versão útil, mesmo incompleta, mais rápido.",
+  "audioUrl": "",
+  "duracao": 10.8,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "evolucionario",
+  "textoLegenda": "Macete: Evolucionário = Pokémon: começa pequeno e evolui a cada batalha (feedback).",
+  "audioUrl": "",
+  "duracao": 6.1,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Incremental: o sistema em fatias. Atenção: esse tema caiu na revisão, em Q15.",
+  "audioUrl": "",
+  "duracao": 5.7,
+  "alvo": "title"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "A ideia central: Como pizza em fatias: cada iteração entrega uma fatia que já dá pra comer (versão operacional), enquanto as próximas ainda estão no forno.",
+  "audioUrl": "",
+  "duracao": 11.1,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Pontos para memorizar. Ciclos = iterações; partes = incrementos.",
+  "audioUrl": "",
+  "duracao": 4.8,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Cada iteração é um miniprojeto (pode ser uma mini-cascata).",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Toda iteração gera versão operacional; pode haver paralelismo.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Entrega por estágio, evolutiva ou as duas.",
+  "audioUrl": "",
+  "duracao": 3.3,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Difícil mapear requisitos dependentes; exige refatoração.",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Alerta de prova! Q15: incremental é V porque a parte dos alevinos pode ir para uso enquanto engorda e venda ainda estão sendo feitas.",
+  "audioUrl": "",
+  "duracao": 9.6,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "É o caso típico de \"entregar por partes\".",
+  "audioUrl": "",
+  "duracao": 3.2,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "incremental",
+  "textoLegenda": "Macete: Iteração = a volta. Incremento = a fatia que a volta entrega.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Espiral: guiado por risco. Atenção: esse tema caiu na revisão, em Q15.",
+  "audioUrl": "",
+  "duracao": 5.2,
+  "alvo": "title"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "A ideia central: É planejar uma missão espacial: a cada volta você define o objetivo, pergunta \"o que pode dar errado?\", constrói um pouco e decide se continua.",
+  "audioUrl": "",
+  "duracao": 11.4,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Pontos para memorizar. 4 setores: Objetivos → Análise de riscos → Desenvolvimento e validação → Planejamento.",
+  "audioUrl": "",
+  "duracao": 7.9,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Sem fases fixas: a gerência decide o que cada volta faz.",
+  "audioUrl": "",
+  "duracao": 4.3,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Para sistemas grandes, complexos, de missão crítica.",
+  "audioUrl": "",
+  "duracao": 4.0,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Abrange outros modelos (cascata, prototipagem, incremental).",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Difícil prever o fim; exige gente experiente.",
+  "audioUrl": "",
+  "duracao": 3.5,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Alerta de prova! Q15: \"escopo pequeno, então use espiral para entregar mais rápido\" é FALSO. Espiral é para projeto grande e arriscado e não é conhecido por rapidez.",
+  "audioUrl": "",
+  "duracao": 11.8,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "espiral",
+  "textoLegenda": "Macete: Espiral = Risco. Ouviu \"análise de riscos\", pense em espiral. Pequeno e urgente? Nunca espiral.",
+  "audioUrl": "",
+  "duracao": 7.5,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "UP/RUP: as 4 fases. Atenção: esse tema caiu na revisão, em Q19.",
+  "audioUrl": "",
+  "duracao": 4.7,
+  "alvo": "title"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "A ideia central: Fazer uma festa: Concepção = \"vale a pena e quanto custa?\"; Elaboração = planta do salão e riscos; Construção = montar tudo; Transição = abrir as portas.",
+  "audioUrl": "",
+  "duracao": 12.1,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "Pontos para memorizar. Concepção: escopo, riscos, 10–20% dos casos de uso. Menor fase.",
+  "audioUrl": "",
+  "duracao": 6.3,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "Elaboração: mitiga riscos, 80% dos requisitos, valida a arquitetura.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "Construção: codifica e testa. Maior fase.",
+  "audioUrl": "",
+  "duracao": 3.2,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "Transição: testes no usuário, implantação, treinamento.",
+  "audioUrl": "",
+  "duracao": 4.2,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "Criado por Jacobson, Rumbaugh e Booch: iterativo, centrado na arquitetura, guiado por casos de uso.",
+  "audioUrl": "",
+  "duracao": 7.2,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "Alerta de prova! Q19: \"compreender o domínio, definir e validar a arquitetura e mitigar os principais riscos\" = ELABORAÇÃO. \"Manutenção\" não é fase do RUP.",
+  "audioUrl": "",
+  "duracao": 11.1,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "rup-fases",
+  "textoLegenda": "Macete: \"CECT\": Concebe, Elabora, Constrói, Transita. Arquitetura e risco? ELAbora: é com ELA.",
+  "audioUrl": "",
+  "duracao": 6.9,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "RUP: 4 fases × 9 disciplinas. Este é um tema de base teórica.",
+  "audioUrl": "",
+  "duracao": 4.6,
+  "alvo": "title"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "A ideia central: Fases são os meses do semestre; disciplinas são as matérias. Toda matéria roda o semestre inteiro, só muda a intensidade de cada uma em cada mês.",
+  "audioUrl": "",
+  "duracao": 11.6,
+  "alvo": "concept"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "Pontos para memorizar. 6 básicas: Modelagem de negócio, Requisitos, Análise e Projeto, Implementação, Testes, Implantação.",
+  "audioUrl": "",
+  "duracao": 8.8,
+  "alvo": "b0"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "3 de apoio: Gerência de projeto, Gerência de configuração, Ambiente.",
+  "audioUrl": "",
+  "duracao": 5.1,
+  "alvo": "b1"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "O esforço de cada disciplina varia conforme a fase.",
+  "audioUrl": "",
+  "duracao": 3.9,
+  "alvo": "b2"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "Cada fase pode ter uma ou várias iterações.",
+  "audioUrl": "",
+  "duracao": 3.4,
+  "alvo": "b3"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "UP é o framework; RUP é o produto comercial da IBM/Rational.",
+  "audioUrl": "",
+  "duracao": 4.5,
+  "alvo": "b4"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "Alerta de prova! Não caiu direto. Pegadinha possível: achar que as disciplinas acontecem uma por fase, como na cascata. No RUP elas são paralelas.",
+  "audioUrl": "",
+  "duracao": 10.5,
+  "alvo": "alert"
+ },
+ {
+  "slideId": "rup-disc",
+  "textoLegenda": "Macete: RUP = 4 + 9. \"4 estações do ano, 9 matérias o ano todo.\".",
+  "audioUrl": "",
+  "duracao": 4.9,
+  "alvo": "macete"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "Qual ciclo usar? A cola de uma tela. Atenção: esse tema caiu na revisão, em RESOLVE A Q15 INTEIRA.",
+  "audioUrl": "",
+  "duracao": 7.2,
+  "alvo": "title"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "Cascata. Use quando..: Requisitos bem definidos e estáveis. Palavra-gatilho na questão: \"sequencial\", \"100% da fase\", \"documentação\".",
+  "audioUrl": "",
+  "duracao": 9.6,
+  "alvo": "r0-0"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "Prototipagem. Use quando..: Requisitos obscuros, dúvida de UI. Palavra-gatilho na questão: \"maquete\", \"validar requisitos\", \"descartar\".",
+  "audioUrl": "",
+  "duracao": 9.8,
+  "alvo": "r0-1"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "Evolucionário. Use quando..: Urgência, sistema pequeno/médio. Palavra-gatilho na questão: \"feedback\", \"versões\", \"urgência\".",
+  "audioUrl": "",
+  "duracao": 9.0,
+  "alvo": "r0-2"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "Incremental. Use quando..: Dá para entregar em partes. Palavra-gatilho na questão: \"partes disponibilizadas enquanto.\".",
+  "audioUrl": "",
+  "duracao": 8.6,
+  "alvo": "r0-3"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "Espiral. Use quando..: Grande, complexo, crítico. Palavra-gatilho na questão: \"análise de riscos\", \"missão crítica\".",
+  "audioUrl": "",
+  "duracao": 8.4,
+  "alvo": "r0-4"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "RUP. Use quando..: Projeto OO iterativo com arquitetura forte. Palavra-gatilho na questão: \"casos de uso\", \"4 fases\", \"Elaboração\".",
+  "audioUrl": "",
+  "duracao": 9.4,
+  "alvo": "r0-5"
+ },
+ {
+  "slideId": "ciclos-tabela",
+  "textoLegenda": "Macete: Q15 = F, F, V, V: cascata não aceita mudança, espiral não é para escopo pequeno, incremental e evolutivo atendem a urgência.",
+  "audioUrl": "",
+  "duracao": 9.5,
+  "alvo": "macete"
+ }
+];
+
+/* Atalho para áudios pré-gerados: se você salvar um MP3 por legenda como
+   audios/001.mp3, audios/002.mp3 ... (na ordem do ROTEIRO), basta definir
+   AUDIO_BASE = "audios" e todos os audioUrl vazios são preenchidos sozinhos. */
+const AUDIO_BASE = "";
+let usingMp3 = false;
+function aplicarAudios(base) {
+  ROTEIRO.forEach((s, i) => { if (!s.audioUrl) s.audioUrl = `${base}/${String(i + 1).padStart(3, "0")}.mp3`; });
+  usingMp3 = true; if (typeof updateTip === "function") updateTip();
+}
+if (AUDIO_BASE) aplicarAudios(AUDIO_BASE);
+
+
+/* ===================================================================== */
+const $ = (q) => document.querySelector(q);
+const stage = $("#stage"), caption = $("#caption"), fill = $("#fill"), knob = $("#knob");
+const playBtn = $("#play"), timeEl = $("#time"), jump = $("#jump"), voiceSel = $("#voice");
+const bySlide = Object.fromEntries(SLIDES.map((s, i) => [s.id, { ...s, index: i }]));
+
+// tempos acumulados (em 1x)
+const starts = []; let total = 0;
+ROTEIRO.forEach((s) => { starts.push(total); total += s.duracao; });
+const firstSeg = {}; ROTEIRO.forEach((s, i) => { if (!(s.slideId in firstSeg)) firstSeg[s.slideId] = i; });
+
+let cur = 0, playing = false, rate = 1, token = 0, segT0 = 0, timers = [], shownSlide = null, ccOn = true;
+const audio = new Audio(); audio.preload = "auto";
+let audioPausedSeg = -1;
+
+/* ---------- Render ---------- */
+const esc = (t) => String(t).replace(/&(?!amp;|lt;|gt;)/g, "&amp;");
+function badgeHTML(s) {
+  if (!s.badge) return "";
+  return `<span class="badge ${s.badge.startsWith("🔥") ? "hot" : "base"}">${esc(s.badge)}</span>`;
+}
+function renderSlide(s) {
+  const el = document.createElement("div");
+  el.className = "slide"; el.dataset.id = s.id;
+  if (s.kind === "cover") {
+    el.classList.add("cover");
+    el.innerHTML = `<p class="eyebrow" style="color:var(--gold)">${esc(s.eyebrow)}</p>
+      <h1 data-alvo="title">${s.title}</h1>
+      <p class="sub" data-alvo="sub">${esc(s.sub)}</p>
+      <div class="chips" data-alvo="chips"><span class="badge hot">🔥 = caiu na revisão</span><span class="badge base">📚 = base teórica</span></div>`;
+  } else if (s.kind === "divider") {
+    el.classList.add("divider"); if (s.id === "d6") el.classList.add("gabarito");
+    el.innerHTML = `<div class="num">${esc(s.num)}</div><h2 data-alvo="title">${esc(s.title)}</h2>
+      <p class="sub" data-alvo="sub">${esc(s.sub)}</p>${s.badge ? `<span class="badge hot" data-alvo="badge">${esc(s.badge)}</span>` : ""}`;
+  } else if (s.kind === "cards") {
+    el.innerHTML = `<div class="top"><span class="eyebrow">${esc(s.eyebrow)}</span></div>
+      <h2 class="title" data-alvo="title">${esc(s.title.replace("📌 ", ""))}</h2>
+      <div class="cards">${s.cards.map((c, i) => `<div class="card ${c.hot ? "hot" : ""} ${i === 5 ? "final" : ""}" data-alvo="card${i}">
+        <h3>${esc(c.h)}</h3><p>${esc(c.p)}</p><p class="tag">${esc(c.tag)}</p></div>`).join("")}</div>
+      <p class="foot" data-alvo="foot">${esc(s.foot)}</p>`;
+  } else if (s.kind === "list") {
+    el.innerHTML = `<div class="top"><span class="eyebrow" style="color:var(--gold)">${esc(s.eyebrow)}</span></div>
+      <h2 class="title nopin" data-alvo="title">🧠 ${esc(s.title.replace("🧠 ", ""))}</h2>
+      <div class="items">${s.items.map((t, i) => `<div class="item" data-alvo="item${i}"><span class="n">${i + 1}</span><span>${t}</span></div>`).join("")}</div>
+      <p class="pill" data-alvo="foot">${esc(s.foot)}</p>`;
+  } else if (s.kind === "table") {
+    const gab = s.id.startsWith("gab"); if (gab) el.classList.add("gab");
+    el.innerHTML = `<div class="top"><span class="eyebrow" ${gab ? 'style="color:var(--hot)"' : ""}>${esc(s.eyebrow)}</span>${badgeHTML(s)}</div>
+      <h2 class="title" data-alvo="title">${esc(s.title)}</h2>
+      ${s.concept ? `<div class="bar" data-alvo="concept"><b>💡 Conceito central &amp; analogia:</b> ${s.concept}</div>` : ""}
+      <div class="tables">${s.tables.map((t, ti) => `<table><tr>${t.head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr>
+        ${t.rows.map((r, ri) => `<tr data-alvo="r${ti}-${ri}">${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>`).join("")}</div>
+      ${s.alert || s.macete ? `<div class="under">
+        ${s.alert ? `<div class="card alert ${s.hot ? "hot" : ""}" data-alvo="alert"><h3>⚠️ Alerta de prova</h3><p>${s.alert}</p></div>` : "<div></div>"}
+        ${s.macete ? `<div class="card macete" data-alvo="macete"><h3>🧠 Gatilho mental / Macete</h3><p>${s.macete}</p></div>` : ""}</div>` : ""}`;
+  } else {
+    el.innerHTML = `<div class="top"><span class="eyebrow">${esc(s.eyebrow)}</span>${badgeHTML(s)}</div>
+      <h2 class="title" data-alvo="title">${esc(s.title)}</h2>
+      <div class="grid">
+        <div class="col">
+          <div class="card concept" data-alvo="concept"><h3>💡 Conceito central &amp; analogia</h3><p>${s.concept}</p></div>
+          <div class="card points"><h3>🎯 ${esc(s.bulletsTitle || "Pontos de memorização")}</h3>
+            <ul>${s.bullets.map((b, i) => `<li data-alvo="b${i}">${b}</li>`).join("")}</ul></div>
+        </div>
+        <div class="col">
+          <div class="card alert ${s.hot ? "hot" : ""}" data-alvo="alert"><h3>⚠️ Alerta de prova${s.hot ? " · conexão com a revisão" : ""}</h3><p>${s.alert}</p></div>
+          <div class="card macete" data-alvo="macete"><h3>🧠 Gatilho mental / Macete</h3><p>${s.macete}</p></div>
+        </div>
+      </div>`;
+  }
+  return el;
+}
+
+function showSlide(id) {
+  if (shownSlide === id) return;
+  const old = stage.querySelector(".slide:not(.leave)");
+  if (old) { old.classList.add("leave"); setTimeout(() => old.remove(), 360); }
+  const el = renderSlide(bySlide[id]);
+  el.classList.add("enter");
+  stage.appendChild(el);
+  shownSlide = id;
+  jump.value = id;
+}
+
+/* Destaque: o que já foi narrado fica aceso, o atual brilha, o resto espera */
+function highlight(i) {
+  const seg = ROTEIRO[i];
+  const el = stage.querySelector(`.slide[data-id="${seg.slideId}"]:not(.leave)`);
+  if (!el) return;
+  const order = [];
+  for (let k = firstSeg[seg.slideId]; k < ROTEIRO.length && ROTEIRO[k].slideId === seg.slideId; k++) {
+    if (!order.includes(ROTEIRO[k].alvo)) order.push(ROTEIRO[k].alvo);
+  }
+  const pos = order.indexOf(seg.alvo);
+  el.querySelectorAll("[data-alvo]").forEach((n) => {
+    const p = order.indexOf(n.dataset.alvo);
+    n.classList.remove("pending", "seen", "active");
+    if (p === -1 || p < pos) n.classList.add("seen");
+    else if (p === pos) n.classList.add("active");
+    else n.classList.add("pending");
+  });
+}
+
+function setCaption(text) {
+  caption.innerHTML = "";
+  const sp = document.createElement("span"); sp.textContent = text; caption.appendChild(sp);
+}
+
+/* ---------- Voz ---------- */
+const hasTTS = "speechSynthesis" in window;
+let voices = [], voice = null;
+const isNatural = (v) => !!v && /natural|neural|online|premium|enhanced/i.test(v.name);
+function rankVoice(v) {
+  let r = 0;
+  if (/pt[-_]BR/i.test(v.lang)) r += 10; else if (/^pt/i.test(v.lang)) r += 2;
+  if (isNatural(v)) r += 40;                       // Edge: "Microsoft Francisca Online (Natural)"
+  if (/francisca/i.test(v.name)) r += 6;           // a mais agradável para aula
+  if (/thalita|antonio/i.test(v.name)) r += 4;
+  if (/google/i.test(v.name)) r += 20;             // Chrome: "Google português do Brasil"
+  if (/luciana|felipe/i.test(v.name)) r += 8;      // macOS / iOS
+  if (/microsoft (maria|daniel)\b/i.test(v.name) && !isNatural(v)) r -= 5; // vozes antigas do Windows
+  if (v.localService === false) r += 2;
+  return r;
+}
+function loadVoices() {
+  if (!hasTTS) return;
+  voices = speechSynthesis.getVoices().filter((v) => /^pt/i.test(v.lang)).sort((a, b) => rankVoice(b) - rankVoice(a));
+  const keep = voiceSel.value;
+  voiceSel.innerHTML = voices.length ? "" : '<option value="">Nenhuma voz pt instalada (legenda no tempo)</option>';
+  voices.forEach((v) => { const o = document.createElement("option"); o.value = v.name; o.textContent = `${v.name} (${v.lang})`; voiceSel.appendChild(o); });
+  voice = voices.find((v) => v.name === keep) || voices[0] || null;
+  if (voice) voiceSel.value = voice.name;
+  updateTip();
+}
+function updateTip() {
+  const tip = document.getElementById("voiceTip"); if (!tip) return;
+  if (usingMp3) tip.innerHTML = "🎧 Narração com os áudios neurais da pasta <b>audios</b>.";
+  else if (isNatural(voice) || /google/i.test(voice ? voice.name : "")) tip.innerHTML = `🎧 Voz em uso: <b>${voice.name}</b>.`;
+  else tip.innerHTML = "⚠️ A voz deste navegador é robótica. Para uma voz natural grátis, abra este arquivo no <b>Microsoft Edge</b> (voz Francisca Online, precisa de internet) ou gere os áudios com o <b>gerar_audios.py</b>.";
+}
+if (hasTTS) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+updateTip();
+voiceSel.onchange = () => { voice = voices.find((v) => v.name === voiceSel.value) || null; updateTip(); if (playing && !usingMp3) startSeg(); };
+
+/* Ajustes só de pronúncia (a legenda continua igual) */
+function paraFala(t, slideId) {
+  let s = t
+    .replace(/→/g, ", depois, ").replace(/×/g, " versus ").replace(/\bvs\b/gi, "versus")
+    .replace(/\s=\s/g, " é ").replace(/=/g, " é ").replace(/\+/g, " mais ")
+    .replace(/\bQ(\d+)/g, "questão $1").replace(/\bA(\d{1,2})\b/g, "A $1")
+    .replace(/\(V\)/g, "(verdadeiro)").replace(/\(F\)/g, "(falso)")
+    .replace(/(^|\s)(é|são) F\b/g, "$1$2 falso").replace(/(^|\s)(é|são) V\b/g, "$1$2 verdadeiro")
+    .replace(/(\w)\/(\w)/g, "$1 e $2").replace(/["“”]/g, "");
+  s = s.replace(/\b[VF](?:,?\s+[VF]\b|,\s*[VF]\b)+/g, (m) => m.replace(/\bV\b/g, "verdadeiro").replace(/\bF\b/g, "falso"));
+  if (slideId && slideId.startsWith("gab") || /^Q15 = /.test(t) || /^Macete: Q15/.test(t)) {
+    s = s.replace(/\b([VF])\b(?=\s*[,.]|\s+[VF]\b|$)/g, (m, x) => (x === "V" ? "verdadeiro" : "falso"));
+  }
+  return s;
+}
+
+/* ---------- Motor do player ---------- */
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+function stopSound() {
+  token++; clearTimers();
+  if (hasTTS) speechSynthesis.cancel();
+  if (!audio.paused) audio.pause();
+}
+function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+
+function goTo(i, { keepPlaying = true } = {}) {
+  i = Math.max(0, Math.min(ROTEIRO.length - 1, i));
+  stopSound(); audioPausedSeg = -1;
+  cur = i;
+  const seg = ROTEIRO[cur];
+  showSlide(seg.slideId);
+  requestAnimationFrame(() => highlight(cur));
+  setCaption(seg.textoLegenda);
+  segT0 = performance.now();
+  if (playing && keepPlaying) startSeg();
+  drawProgress();
+}
+
+function next() {
+  if (cur >= ROTEIRO.length - 1) { setPlaying(false); setCaption("Fim da aula. Boa prova! 🍀"); return; }
+  goTo(cur + 1);
+}
+
+function startSeg() {
+  stopSound();
+  const seg = ROTEIRO[cur], my = token;
+  segT0 = performance.now();
+  if (seg.audioUrl) {
+    audio.src = seg.audioUrl; audio.playbackRate = rate;
+    audio.onended = () => { if (my === token) next(); };
+    audio.onerror = () => { if (my === token) speak(seg, my); };
+    audio.play().catch(() => { if (my === token) speak(seg, my); });
+  } else speak(seg, my);
+}
+
+function speak(seg, my) {
+  const fallback = () => later(() => { if (my === token) next(); }, (seg.duracao * 1000) / rate);
+  if (!hasTTS) return fallback();
+  speechSynthesis.cancel();
+  later(() => {
+    if (my !== token) return;
+    const u = new SpeechSynthesisUtterance(paraFala(seg.textoLegenda, seg.slideId));
+    u.lang = "pt-BR"; if (voice) u.voice = voice; u.rate = rate; u.pitch = 1;
+    let started = false;
+    u.onstart = () => { started = true; segT0 = performance.now(); };
+    u.onend = () => { if (my === token) later(() => { if (my === token) next(); }, 180); };
+    u.onerror = (e) => { if (my === token && e.error !== "interrupted" && e.error !== "canceled") fallback(); };
+    speechSynthesis.speak(u);
+    // se a voz nunca começar (navegador sem voz), segue no tempo da legenda
+    later(() => { if (my === token && !started && !speechSynthesis.speaking) { speechSynthesis.cancel(); fallback(); } }, 2500);
+    // rede de segurança para navegadores que não disparam onend
+    later(() => { if (my === token) { speechSynthesis.cancel(); next(); } }, ((seg.duracao * 2.6) / rate + 5) * 1000);
+  }, 60);
+}
+
+function setPlaying(p) {
+  playing = p;
+  playBtn.textContent = p ? "⏸ Pause" : "▶ Play";
+}
+function play() {
+  $("#start").classList.add("hidden");
+  if (playing) return;
+  setPlaying(true);
+  if (audioPausedSeg === cur && audio.src) {
+    const my = ++token; audio.playbackRate = rate;
+    audio.onended = () => { if (my === token) next(); };
+    audio.play().catch(() => startSeg());
+    segT0 = performance.now() - audio.currentTime * 1000 / rate;
+    audioPausedSeg = -1;
+  } else startSeg();
+}
+function pause() {
+  if (!playing) return;
+  setPlaying(false);
+  const usingAudio = !audio.paused;
+  if (usingAudio) { token++; clearTimers(); audio.pause(); audioPausedSeg = cur; }
+  else stopSound(); // a fala recomeça do início da legenda atual ao dar play
+}
+
+function slideStep(dir) {
+  const idx = bySlide[ROTEIRO[cur].slideId].index + dir;
+  if (idx < 0 || idx >= SLIDES.length) return;
+  goTo(firstSeg[SLIDES[idx].id]);
+}
+
+/* ---------- Progresso ---------- */
+const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+function elapsedInSeg() {
+  const d = ROTEIRO[cur].duracao;
+  if (!audio.paused && audio.duration) return Math.min(d, (audio.currentTime / audio.duration) * d);
+  if (!playing) return 0;
+  return Math.min(d * 0.98, ((performance.now() - segT0) / 1000) * rate);
+}
+function drawProgress() {
+  const t = starts[cur] + elapsedInSeg();
+  const pct = (t / total) * 100;
+  fill.style.width = pct + "%"; knob.style.left = pct + "%";
+  timeEl.textContent = `${fmt(t / rate)} / ${fmt(total / rate)} · slide ${bySlide[ROTEIRO[cur].slideId].index + 1}/${SLIDES.length}`;
+}
+(function loop() { drawProgress(); requestAnimationFrame(loop); })();
+
+// marcas de seção e de slide na barra
+(function ticks() {
+  const sec = new Set(SLIDES.filter((s) => s.kind === "divider").map((s) => s.id));
+  SLIDES.forEach((s) => {
+    const k = firstSeg[s.id]; if (!k) return;
+    const d = document.createElement("div");
+    d.className = "tick" + (sec.has(s.id) ? " sec" : "");
+    d.style.left = (starts[k] / total) * 100 + "%";
+    $("#progress").appendChild(d);
+  });
+})();
+
+$("#progress").addEventListener("click", (e) => {
+  const r = e.currentTarget.getBoundingClientRect();
+  const t = ((e.clientX - r.left) / r.width) * total;
+  let k = 0; while (k < starts.length - 1 && starts[k + 1] <= t) k++;
+  $("#start").classList.add("hidden");
+  goTo(k);
+});
+
+/* ---------- Controles ---------- */
+playBtn.onclick = () => (playing ? pause() : play());
+$("#startBtn").onclick = () => play();
+$("#prev").onclick = () => slideStep(-1);
+$("#next").onclick = () => slideStep(1);
+$("#speed").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  rate = parseFloat(b.dataset.rate);
+  $("#speed").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  if (!audio.paused) audio.playbackRate = rate;
+  else if (playing) startSeg(); // a voz do navegador só muda de velocidade numa nova fala
+});
+$("#cc").onclick = () => { ccOn = !ccOn; caption.classList.toggle("off", !ccOn); $("#cc").classList.toggle("on", ccOn); };
+$("#fs").onclick = () => { const a = document.querySelector(".app"); document.fullscreenElement ? document.exitFullscreen() : a.requestFullscreen && a.requestFullscreen(); };
+SLIDES.forEach((s, i) => {
+  const o = document.createElement("option"); o.value = s.id;
+  const t = s.title.replace(/<br>/g, " ").replace(/^📌 |^🧠 /, "");
+  o.textContent = `${i + 1}. ${s.kind === "divider" ? "■ " : ""}${t}`; jump.appendChild(o);
+});
+jump.onchange = () => { $("#start").classList.add("hidden"); goTo(firstSeg[jump.value]); };
+$("#export").onclick = () => {
+  const data = ROTEIRO.map(({ slideId, textoLegenda, audioUrl, duracao }, i) => ({ n: i + 1, arquivo: `${String(i + 1).padStart(3, "0")}.mp3`, slideId, textoLegenda, audioUrl, duracao }));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  a.download = "roteiro-video-aula-es1.json"; a.click();
+};
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "SELECT") return;
+  if (e.code === "Space") { e.preventDefault(); playing ? pause() : play(); }
+  else if (e.key === "ArrowRight") slideStep(1);
+  else if (e.key === "ArrowLeft") slideStep(-1);
+  else if (e.key.toLowerCase() === "c") $("#cc").click();
+  else if (e.key.toLowerCase() === "f") $("#fs").click();
+});
+
+goTo(0, { keepPlaying: false });
+</script>
+<script src="bridge.js"></script>
+</body>
+</html>

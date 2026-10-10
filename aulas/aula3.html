@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aula 3 · Arquitetura: documentação e estilos (Caps. 7 a 9)</title>
+<style>
+:root{
+  --bg:#0A0F1E; --panel:#151D3A; --panel2:#121932; --line:#27325C;
+  --text:#E9EDFB; --mut:#9AA7CC; --acc:#8AA4FF; --amb:#FFCB5C; --cor:#FF8A68; --mint:#5BE3A8;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; display:flex; flex-direction:column; overflow:hidden; color:var(--text);
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  background:
+    radial-gradient(1100px 560px at 15% -10%, #1c2b6b 0, transparent 60%),
+    radial-gradient(900px 520px at 105% 110%, #3b1e5f 0, transparent 55%),
+    var(--bg);
+}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 28px}
+.brand{font-weight:800;letter-spacing:.02em;font-size:15px;color:var(--mut)}
+.brand b{color:var(--text)}
+.counter{font-size:14px;color:var(--mut);font-variant-numeric:tabular-nums}
+#voiceNote{margin:0 28px;padding:8px 14px;border-radius:12px;font-size:14px;line-height:1.4;border:1px solid var(--line);background:rgba(21,29,58,.7);color:var(--mut)}
+#voiceNote.ok{border-color:rgba(91,227,168,.5);color:#bff5dc}
+#voiceNote.warn{border-color:rgba(255,203,92,.6);color:#ffe3a1;background:rgba(255,203,92,.08)}
+#stage{flex:1;position:relative;min-height:0}
+.slide{
+  position:absolute;inset:0;padding:6px 28px;overflow:auto;opacity:0;visibility:hidden;
+  transform:translateX(44px) scale(.985);
+  transition:opacity .55s ease,transform .55s ease,visibility 0s .55s;
+}
+.slide.past{transform:translateX(-44px) scale(.985)}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .55s ease .1s,transform .55s ease .1s,visibility 0s}
+.wrap{max-width:1280px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:16px}
+.head{display:flex;flex-direction:column;gap:8px}
+.chip{align-self:flex-start;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);background:rgba(138,164,255,.12);border:1px solid rgba(138,164,255,.35);padding:5px 12px;border-radius:999px}
+h2{margin:0;font-size:clamp(28px,3.8vw,46px);line-height:1.1;font-weight:800;letter-spacing:-.01em;transition:text-shadow .5s}
+h2.active{text-shadow:0 0 28px rgba(138,164,255,.55)}
+.grid{display:grid;grid-template-columns:1fr 1.1fr;gap:16px}
+.col{display:flex;flex-direction:column;gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:18px;padding:18px 22px;
+  transition:opacity .5s ease,box-shadow .5s ease,border-color .5s ease;
+}
+.card h4{margin:0 0 9px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--acc)}
+.card p{margin:0;font-size:clamp(16px,1.45vw,20px);line-height:1.5}
+.card.conceito h4{color:var(--mint)}
+.card.pontos h4{color:var(--cor)}
+.card.alerta{background:linear-gradient(180deg,rgba(255,203,92,.14),rgba(255,203,92,.05));border-color:rgba(255,203,92,.4)}
+.card.alerta h4{color:var(--amb)}
+.card.gatilho{background:linear-gradient(135deg,#2a3a86,#1c2457);border-color:#3d4fa8}
+.card.gatilho h4{color:#c9d5ff}
+.card.gatilho p{font-weight:800;font-size:clamp(18px,1.7vw,24px)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+li{padding:8px 12px;border-radius:10px;border-left:3px solid transparent;font-size:clamp(16px,1.4vw,19px);line-height:1.45;transition:opacity .5s ease,background .5s ease,border-color .5s ease,box-shadow .5s ease}
+li b{color:#fff}
+/* destaque conforme a leitura */
+body:not(.showall) [data-k].unread{opacity:.3}
+body:not(.showall) [data-k].read{opacity:.75}
+[data-k].active{opacity:1}
+.card[data-k].active{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 0 38px rgba(138,164,255,.38)}
+.card.alerta[data-k].active{border-color:var(--amb);box-shadow:0 0 0 1px var(--amb),0 0 38px rgba(255,203,92,.35)}
+li[data-k].active{background:rgba(255,138,104,.13);border-left-color:var(--cor);box-shadow:0 0 24px rgba(255,138,104,.2)}
+/* animação de entrada */
+.slide.enter .anim{animation:rise .75s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--n,0)*90ms)}
+@keyframes rise{from{transform:translateY(24px)}to{transform:none}}
+/* intro e gabarito */
+.hero h1{margin:0;font-size:clamp(34px,5.2vw,68px);line-height:1.05;font-weight:800;letter-spacing:-.02em;background:linear-gradient(90deg,#fff,#9db3ff 60%,#c6a2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{margin:0;color:var(--mut);font-size:clamp(16px,1.6vw,22px)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.trio{grid-template-columns:1fr}}
+.trio .card .n{font-size:40px;font-weight:800;color:var(--acc);line-height:1}
+.trio .card p b{color:#fff}
+.how{display:flex;flex-wrap:wrap;gap:10px;font-size:clamp(15px,1.3vw,18px)}
+.how span{background:rgba(255,255,255,.06);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+.bigplay{align-self:flex-start;border:0;cursor:pointer;font-weight:800;font-size:18px;padding:14px 26px;border-radius:999px;color:#0A0F1E;background:linear-gradient(90deg,#8AA4FF,#b7a2ff);box-shadow:0 8px 30px rgba(138,164,255,.4)}
+.bigplay:hover{filter:brightness(1.08)}
+.gab{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.gab{grid-template-columns:1fr}}
+.gab .card{padding:14px 18px}
+.gab .q{font-size:12px;letter-spacing:.14em;font-weight:800;text-transform:uppercase;color:var(--amb)}
+.gab .r{font-size:clamp(18px,1.7vw,24px);font-weight:800;margin:2px 0 4px}
+.gab .d{font-size:clamp(14px,1.2vw,17px);color:var(--mut);line-height:1.4}
+.foot{font-size:14px;color:var(--mut)}
+/* legenda */
+#caption{padding:6px 28px 4px}
+#capText{max-width:1120px;margin:0 auto;min-height:64px;text-align:center;font-size:clamp(17px,1.7vw,23px);line-height:1.45;font-weight:600;
+  padding:11px 18px;border-radius:14px;background:rgba(8,12,28,.78);border:1px solid var(--line);backdrop-filter:blur(6px)}
+#capText .w{color:#b4bee0;transition:color .15s}
+#capText .w.on{color:#fff}
+/* controles */
+footer.controls{padding:8px 28px 14px;display:flex;flex-direction:column;gap:10px}
+.barrow{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--mut);font-variant-numeric:tabular-nums}
+#bar{flex:1;height:12px;border-radius:999px;background:#1b2447;position:relative;cursor:pointer;border:1px solid var(--line)}
+#fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:linear-gradient(90deg,#8AA4FF,#b7a2ff)}
+#ticks i{position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.18)}
+#knob{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;box-shadow:0 0 14px rgba(138,164,255,.8);left:0}
+.btnrow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+button.b{cursor:pointer;border:1px solid var(--line);background:#18214a;color:var(--text);font-weight:700;font-size:15px;padding:9px 16px;border-radius:12px;transition:background .2s,transform .1s}
+button.b:hover{background:#222d63}
+button.b:active{transform:scale(.97)}
+button.play{background:linear-gradient(90deg,#8AA4FF,#b7a2ff);color:#0A0F1E;border:0;min-width:116px}
+button.play:hover{filter:brightness(1.08);background:linear-gradient(90deg,#8AA4FF,#b7a2ff)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:#18214a;color:var(--mut);padding:9px 13px;font-weight:700;font-size:14px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on{background:#2c3a85;color:#fff}
+select{background:#18214a;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:9px 10px;font-size:14px;max-width:240px}
+label.chk{font-size:14px;color:var(--mut);display:flex;gap:6px;align-items:center;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.slide,.card,li{transition:none}.slide.enter .anim{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><b>Vídeo-aula interativa</b> · Engenharia de Software I · Arquitetura de Software (Caps. 7, 8 e 9)</div>
+  <div class="counter" id="counter">1 / 1</div>
+</header>
+<div id="voiceNote">Verificando vozes do navegador…</div>
+<main id="stage"></main>
+<section id="caption"><div id="capText"></div></section>
+<footer class="controls">
+  <div class="barrow"><span id="tNow">0:00</span><div id="bar" title="Clique para ir a qualquer ponto da aula"><div id="fill"></div><div id="ticks"></div><div id="knob"></div></div><span id="tTot">0:00</span></div>
+  <div class="btnrow">
+    <button class="b" id="bPrev">◀◀ Voltar</button>
+    <button class="b play" id="bPlay">▶ Play</button>
+    <button class="b" id="bNext">Avançar ▶▶</button>
+    <div class="seg" id="speeds"><button data-s="1" class="on">1x</button><button data-s="1.25">1.25x</button><button data-s="1.5">1.5x</button></div>
+    <select id="voiceSel" title="Voz da narração"></select>
+    <label class="chk"><input type="checkbox" id="showAll"> Mostrar tudo</label>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* =========================================================
+   CONTEÚDO (somente capítulos 7, 8 e 9)
+   ========================================================= */
+const SLIDES = [
+{tipo:"intro", id:"intro"},
+{id:"a1", cap:"Capítulo 7 · Introdução", titulo:"Análise × Projeto: o quê vs como",
+ conceito:`Análise é a planta do que você quer na casa. Projeto é o engenheiro decidindo como construir.`,
+ pontos:[`<b>Análise</b>: o que o sistema faz, sem tecnologia`,`<b>Projeto</b>: como atender os requisitos, com tecnologia`,`<b>Projeto arquitetural</b>: alto nível e grande escala`,`<b>Projeto detalhado</b>: baixo nível, com classes, algoritmos, banco e interface`,`Decisão de arquitetura é <b>cara de mudar</b> depois de pronto`],
+ alerta:null, gatilho:`Análise é o quê. Projeto é o como. Arquitetura é o esqueleto difícil de mudar.`},
+{id:"a2", cap:"Capítulo 7 · Introdução", titulo:"Arquitetura = componentes + conectores",
+ conceito:`Componentes são as peças de LEGO e conectores são os encaixes entre elas. Ninguém liga para o plástico por dentro de cada peça.`,
+ pontos:[`<b>Arquitetura</b>: decisões de alto nível sobre estrutura e comportamento`,`<b>Componente</b>: hardware ou software, como servidor, app, banco, microsserviço ou container`,`<b>Conector</b>: como eles conversam, como HTTP, TCP/IP, JDBC, chamada de método ou evento`,`Pode ser da equipe ou <b>de terceiros</b>, como MySQL e Tomcat`,`<b>Detalhes internos não importam</b>`],
+ alerta:null, gatilho:`Arquitetura são caixas e setas. Não abra a caixa!`},
+{id:"a3", cap:"Capítulo 7 · Estudo de caso das bebidas", titulo:"Estudo de caso: 4 soluções, 4 trade-offs",
+ conceito:`Escolher arquitetura é escolher o caminho para o trabalho: o mais curto tem pedágio, o mais seguro é mais longo. Não existe a melhor, existe a que atende os requisitos.`,
+ pontos:[`<b>Solução 1</b>: o app fala direto com o Faturamento. Inviável por <b>segurança</b>`,`<b>Solução 2</b>: novo Sistema de Controle, envio na hora. Falha <b>sem sinal</b>`,`<b>Solução 3</b>: lote no fim do dia. Funciona offline, mas causa <b>gargalo</b>`,`<b>Solução 4</b>: serviço em background, em lote ou ao longo do dia. <b>Mais completa e mais complexa</b>`],
+ alerta:null, gatilho:`Requisito novo, arquitetura nova. Sem sinal? Guarda e envia depois.`},
+{id:"b1", cap:"Capítulo 8 · Documentação de arquiteturas", titulo:"Documentar: informal, semiformal, formal",
+ conceito:`Informal é rabisco no guardanapo. Semiformal é planta com legenda padrão. Formal é projeto que uma máquina consegue validar.`,
+ pontos:[`<b>Informal</b>: desenhos livres. É a mais usada, mas outras pessoas não entendem`,`<b>Semiformal</b>: diagramas com regras, como <b>UML</b> e <b>C4</b>`,`<b>Formal</b>: linguagem formal gráfica e textual, como a <b>AADL</b>`,`Objetivo: <b>comunicar</b> a arquitetura para todo mundo`],
+ alerta:null, gatilho:`Guardanapo, planta, matemática. Semi é UML e C4.`},
+{id:"b2", cap:"Capítulo 8 · Documentação de arquiteturas", titulo:"Modelo 4+1 de Kruchten",
+ conceito:`É mostrar um prédio por quatro plantas: estrutura, elétrica, hidráulica e fachada. O mais um é o morador usando o prédio, que confere se tudo bate.`,
+ pontos:[`<b>Lógica</b>: abstrações para o usuário, com classes e sequência`,`<b>Desenvolvimento</b>: módulos e subsistemas, com componentes e pacotes`,`<b>Processos</b>: execução, concorrência e desempenho`,`<b>Física</b>: topologia do hardware, com diagrama de implantação`,`<b>Mais um, Cenários</b>: casos de uso que validam as quatro visões`],
+ alerta:`Q3 liga cada diagrama ao seu propósito. Saber qual visão cada um representa resolve a questão.`,
+ gatilho:`Física é implantação. Desenvolvimento é componentes. Cenários amarram tudo.`},
+{id:"b3", cap:"Capítulo 8 · Documentação de arquiteturas", titulo:"Diagrama de componentes",
+ conceito:`Componente é uma peça reusável e substituível, como uma pilha: troca por outra igual sem mexer no resto do aparelho.`,
+ pontos:[`<b>Componente</b>: parte reusável e substituível que modulariza o software`,`Em orientação a objetos pode ser <b>classe, pacote ou subsistema</b>`,`<b>Estereótipos</b>: aplicação, app móvel, banco de dados, serviço e microsserviço`,`<b>Dependência</b>: seta aberta <b>pontilhada</b>`,`Na UML 2, arquivos físicos viram <b>artefatos</b>`],
+ alerta:`Q3: o diagrama de componentes mostra módulos de software e suas interações. Não é exclusivo de orientação a objetos e não mostra hardware.`,
+ gatilho:`Componente é peça de troca. Seta pontilhada diz: eu dependo de você.`},
+{id:"b4", cap:"Capítulo 8 · Documentação de arquiteturas", titulo:"Interface provida × requerida",
+ conceito:`Provida é o cardápio do restaurante, o que ele oferece. Requerida são os ingredientes que a cozinha precisa receber do fornecedor.`,
+ pontos:[`<b>Interface</b>: contrato dos serviços de um componente`,`<b>Provida</b>, que oferece: desenhada como <b>bola</b>`,`<b>Requerida</b>, que precisa: desenhada como <b>soquete</b>`,`Conversar só por interface gera <b>baixo acoplamento</b>`,`<b>Realização</b> da interface: seta fechada pontilhada`],
+ alerta:null, gatilho:`Bola oferece, soquete pede. Bola mais soquete é encaixe.`},
+{id:"b5", cap:"Capítulo 8 · Documentação de arquiteturas", titulo:"Diagrama de implantação",
+ conceito:`É o mapa da cidade onde o software mora: quais prédios, que andares e por quais ruas tudo se liga.`,
+ pontos:[`<b>Nós</b>: hardware, como servidor, celular e sensor, ou <b>ambiente de execução</b>, como sistema operacional e SGBD`,`<b>Artefatos</b>: arquivos concretos instalados nos nós`,`<b>Caminhos de comunicação</b>: ligações como HTTPS, TCP/IP e 5G`,`Muito útil em <b>processamento distribuído</b>`,`Estereótipos: servidor, smartphone, SGBD e cabeado`],
+ alerta:`Q3: a implantação mostra a distribuição dos componentes em nós físicos e ambientes de execução. Não é só para sistemas embarcados.`,
+ gatilho:`Componentes são o que existe. Implantação é onde roda.`},
+{id:"b6", cap:"Capítulo 8 · Documentação de arquiteturas", titulo:"Componentes × implantação",
+ conceito:`Componentes é o organograma da empresa, quem faz o quê. Implantação é a planta do escritório, em qual sala cada time senta.`,
+ pontos:[`<b>Componentes</b>: módulos <b>lógicos</b> e suas interações, na visão de desenvolvimento`,`<b>Implantação</b>: nós, ambientes e redes <b>físicos</b>, na visão física`,`Podem ser <b>combinados</b>: componentes dentro dos nós`,`Os dois são UML e servem a <b>qualquer</b> tipo de sistema`],
+ alerta:`Q3, gabarito b. Desconfie de "exclusivamente" na alternativa a, de papéis trocados na c e de "só banco de dados" na d.`,
+ gatilho:`Componente é lógico. Implantação é físico. Inverteu? Errou.`},
+{id:"c1", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"O que é um estilo arquitetural",
+ conceito:`Estilo é a receita de bolo da arquitetura: diz quais ingredientes existem e as regras para misturá-los.`,
+ pontos:[`<b>Estilo</b>: tipos de elementos e regras de combinação`,`Ele <b>simplifica</b> o problema de definir a arquitetura`,`Sistemas grandes <b>misturam vários estilos</b>`,`Exemplos: camadas, MVC, MVP, EBI, cliente-servidor, N-Tier e repositório`,`Também existem: Pub/Sub, microsserviços, dutos e filtros e orientada a eventos`],
+ alerta:null, gatilho:`Leu a descrição? Dê o nome do estilo.`},
+{id:"c2", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"Repositório: um banco para todos",
+ conceito:`É o quadro de avisos do condomínio: todos leem e postam no mesmo quadro, ninguém entrega aviso na mão do vizinho.`,
+ pontos:[`<b>Repositório central</b> compartilhado por vários subsistemas`,`<b>Sem troca direta</b> de dados entre subsistemas`,`Cada subsistema pode ter <b>tecnologia diferente</b>`,`Vantagem: backup central e fácil integrar novos subsistemas`,`Desvantagem: exige <b>padrão de acesso</b> e concilia requisitos conflitantes`],
+ alerta:null, gatilho:`Ninguém fala com ninguém. Todo mundo fala com o banco.`},
+{id:"c3", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"Camadas (Layers)",
+ conceito:`É um prédio de apartamentos: cada andar só conversa com o de baixo e o de cima, e ninguém pula andares.`,
+ pontos:[`Pede serviço <b>só à camada de baixo</b> e serve <b>só à de cima</b>`,`Divisão comum: <b>aplicação, domínio e tecnologia</b>`,`Camadas são <b>lógicas</b>: podem estar em nós diferentes`,`Vantagem: desenvolve em paralelo e troca camada por equivalente`,`Muitas camadas <b>pioram o desempenho</b>; pular camada (layer bridging) só com parcimônia`],
+ alerta:`Q5: três camadas são apresentação, negócio e dados (c). Q6: dizer que exige três servidores físicos é a alternativa errada (e).`,
+ gatilho:`Camada é andar de prédio. Pular andar, só com parcimônia.`},
+{id:"c4", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"MVC: Model, View, Controller",
+ conceito:`Restaurante: o Model é a cozinha, com dados e regras, a View é o prato na mesa e o Controller é o garçom que leva o pedido.`,
+ pontos:[`<b>Model</b>: dados e regras, independente da apresentação`,`<b>View</b>: apresenta os dados ao usuário`,`<b>Controller</b>: trata os <b>eventos da interface</b> e direciona requisições`,`Várias <b>Views</b> para o mesmo Model`,`Dividem <b>responsabilidades</b>, não formam camadas`],
+ alerta:`Q2: o Model guarda o estado das interações tratadas pelo Controller e a View apresenta (V). Q14 e Q15: o Controller do MVC trata eventos da UI.`,
+ gatilho:`Garçom leva, cozinha faz, prato chega. E não são camadas!`},
+{id:"c5", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"MVC: como a mudança se propaga",
+ conceito:`Grupo de WhatsApp: alguém muda o nome do grupo e todos os membros são avisados e atualizam a tela.`,
+ pontos:[`Passo 1: o <b>Controller</b> recebe o evento do usuário`,`Passo 2: traduz em <b>requisição</b> ao Model`,`Passo 3: o <b>Model</b> muda de estado e <b>notifica todas as Views</b>`,`Passo 4: as <b>Views</b> buscam os dados no Model e se atualizam`,`Ponto fraco: <b>Model e View ficam acoplados</b>`],
+ alerta:`Q15: "o M avisa a V que mudou" é V. A crítica de acoplamento entre M e V, resolvida com DI e DIP, também aparece lá.`,
+ gatilho:`C pede, M muda, M avisa, V atualiza.`},
+{id:"c6", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"MVP: o Presenter no meio",
+ conceito:`É o tradutor numa reunião: duas pessoas não falam direto, o Presenter intermedeia entre Model e View.`,
+ pontos:[`<b>Presenter</b> tem o papel do Controller: trata <b>eventos da interface</b>`,`O Model notifica o <b>Presenter</b>, não as Views`,`O Presenter <b>repassa os dados</b> atualizados à View`,`Resultado: <b>Model e View desacoplados</b>`,`Também é para aplicação <b>interativa</b>`],
+ alerta:`Q15: "o P trata eventos da UI" é V. Desconfie do trecho "interativas ou não": o material define o MVP para aplicação interativa.`,
+ gatilho:`No MVC o Model avisa a View. No MVP o Model avisa o Presenter, que avisa a View.`},
+{id:"c7", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"EBI: Entity, Boundary, Interactor",
+ conceito:`Num evento: Boundary é a recepção, Interactor é o organizador que coordena tudo e Entity é o arquivo com dados e regras dos convidados.`,
+ pontos:[`<b>Boundary</b>: interface com usuários, sistemas e dispositivos`,`<b>Interactor</b>: lógica do caso de uso, <b>coordena</b> os demais objetos`,`<b>Entity</b>: dados e o comportamento associado a eles`,`Origem: Jacobson, Entity-Interface-Control, em 1992`,`A revisão chama de <b>EBC</b>, com Control`],
+ alerta:`Q14, item 4 (V): o Controller do MVC trata eventos da UI e o Controller do EBC controla o serviço da aplicação.`,
+ gatilho:`Dois Controllers: um cuida da tela, o outro cuida do serviço.`},
+{id:"c8", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"MVC + EBC e MVP + EBC",
+ conceito:`Cozinha com dois chefs: um atende o salão, outro coordena a receita. Dá para ter os dois, com MVC ou com MVP.`,
+ pontos:[`<b>MVC mais Service Controller</b>: UIController e ServiceController`,`<b>MVP mais Service Controller</b>: Presenter e ServiceController`,`Objetivo: <b>separar</b> eventos da UI da coordenação do serviço`,`Eventos de UI diferentes podem gerar o <b>mesmo evento do sistema</b>`],
+ alerta:`Q15, último item: "não é possível MVP + EBC" é F. O material mostra a combinação MVP com Service Controller.`,
+ gatilho:`Interface de um lado, serviço do outro. MVC e MVP aceitam os dois.`},
+{id:"c9", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"Cliente-servidor (2-Tier)",
+ conceito:`É um restaurante: o cliente pede, a cozinha atende e responde. O cliente sabe o endereço, o restaurante não sabe quem vai chegar.`,
+ pontos:[`<b>Cliente</b> solicita e <b>servidor</b> atende e responde`,`Protocolo <b>request-reply</b>: no máximo uma resposta por pedido`,`Duas camadas físicas ligadas por <b>rede</b>`,`Vantagem: servidores especializados, fáceis de adicionar ou atualizar`,`Desvantagem: depende da <b>disponibilidade</b> do servidor e é alvo de ataques`],
+ alerta:`Q14, item 3 (V): REST usa HTTP para operações CRUD, com POST, GET, PUT e DELETE, e responde em HTML, XML ou JSON. Q19 parte de um sistema web com thin client.`,
+ gatilho:`O cliente sabe onde fica o servidor. O servidor nem sabe quem é o cliente.`},
+{id:"c10", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"Cliente magro × cliente gordo",
+ conceito:`Thin é o streaming: a tela só mostra o vídeo e o servidor faz o trabalho. Fat é o jogo instalado: o seu computador faz quase tudo.`,
+ pontos:[`<b>Thin</b>: cliente só com <b>apresentação</b>; lógica e dados no servidor`,`<b>Fat</b>: cliente com apresentação <b>e lógica</b>; dados no servidor`,`Thin: <b>sobrecarrega o servidor</b> e gera muito tráfego de rede`,`Fat: aplicação complexa, hardware mais forte`,`Fat: mudou a funcionalidade? <b>Atualiza todos</b> os clientes`],
+ alerta:`Q19: o sistema da IES é web 3-tier com thin client. Saber o que fica em cada lado ajuda a propor a solução.`,
+ gatilho:`Thin: o servidor sofre. Fat: atualizar dói em todo cliente.`},
+{id:"c11", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"N-Tier: layer é lógico, tier é físico",
+ conceito:`É espalhar o restaurante em prédios: recepção, cozinha e estoque. Tier é o prédio, a máquina. Layer é o setor, a divisão lógica.`,
+ pontos:[`<b>3-Tier</b>: cliente, servidor web com a lógica e servidor de banco`,`<b>4-Tier</b>: separa servidor web e servidor de aplicação`,`Vantagem: balanceia a carga e <b>escala</b>, adicionando servidores de aplicação`,`Desvantagem: mais camadas, mais complexidade e <b>overhead</b>`,`Não define <b>como</b> as máquinas se comunicam`],
+ alerta:`Q5 e Q6: três camadas lógicas são apresentação, negócio e dados, e não exigem três servidores físicos. Q19 (dissertativa): escale a camada de aplicação com mais servidores e balanceador.`,
+ gatilho:`Layer é lógico. Tier é físico. N-Tier só conta máquinas.`},
+{id:"c12", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"Como as máquinas conversam",
+ conceito:`É escolher como falar com alguém em outra cidade: ligação direta, recado por mensageiro ou carta padronizada.`,
+ pontos:[`<b>RPC e RMI</b>: chamada remota que parece <b>local</b>`,`<b>Message Broker</b>: mensagens trocadas de forma assíncrona`,`<b>SOAP</b>: protocolo de web services`,`<b>REST com JSON</b>: HTTP com operações CRUD`,`<b>GraphQL</b>: o cliente consulta só o que precisa`],
+ alerta:`Q14, item 3 (V): REST usa POST, GET, PUT e DELETE sobre HTTP, e responde em HTML, XML ou JSON, entre outros.`,
+ gatilho:`N-Tier diz quantas máquinas. RPC, REST e mensageria dizem como elas conversam.`},
+{id:"c13", cap:"Capítulo 9 · Estilos arquiteturais", titulo:"Java RMI: passo a passo",
+ conceito:`É uma lista telefônica: o servidor se cadastra com um nome, o cliente procura o nome e liga.`,
+ pontos:[`<b>Registro RMI</b>: lista de serviços e suas assinaturas`,`<b>Servidor RMI</b>: provê o serviço remoto`,`<b>Cliente RMI</b>: consome o serviço remoto`,`O servidor <b>cria</b> o objeto e <b>registra</b> com um nome`,`O cliente <b>busca pelo nome</b> e executa o método`],
+ alerta:null, gatilho:`Cria, registra, busca, executa.`},
+{tipo:"gabarito", id:"gabarito"}
+];
+
+/* Gabarito: só questões ligadas aos capítulos 7, 8 e 9 */
+const GAB = [
+ {q:"Questão 2 · item do MVC", r:"V", d:"O Model guarda o estado das interações tratadas pelo Controller, e a View apresenta. Os outros itens da questão são de outros temas e ficam fora."},
+ {q:"Questão 3", r:"Alternativa b", d:"Componentes mostram módulos de software e suas interações. Implantação mostra a distribuição em nós físicos e ambientes de execução."},
+ {q:"Questão 5", r:"Alternativa c", d:"Apresentação, negócio e dados."},
+ {q:"Questão 6 · exceção", r:"Alternativa e", d:"Camadas lógicas não exigem três servidores físicos. As demais alternativas são características do modelo."},
+ {q:"Questão 14 · itens 3 e 4", r:"V e V", d:"REST usa HTTP para CRUD. O Controller do MVC trata eventos da UI e o do EBC controla o serviço."},
+ {q:"Questão 15", r:"V, V*, F*, V*, F", d:"M avisa V. No MVP, P trata eventos da UI. MVP mais EBC é possível. * Itens deduzidos do material."},
+ {q:"Questão 19 · dissertativa", r:"Resposta sugerida", d:"Em 3-tier, escale a camada de aplicação com mais servidores e balanceador de carga. Nada muda no código e a demanda se distribui."}
+];
+
+/* =========================================================
+   LIMPEZA DO TEXTO PARA A VOZ
+   ========================================================= */
+const SUBS = [
+ [/<[^>]+>/g,""],
+ [/\bQ(\d+)/g,"questão $1"],
+ [/Cap\./g,"Capítulo"],
+ [/×/g," versus "],
+ [/\bvs\.?/gi," versus "],
+ [/\s=\s/g," é "],
+ [/→/g," leva a "],
+ [/·/g,","],
+ [/[▪✔✘📌💡🎯⚠️🧠]/g,""],
+ [/(\d)\+(\d)/g,"$1 mais $2"],
+ [/\s\+\s/g," mais "],
+ [/\bBD\b/g,"banco de dados"],
+ [/\bUI\b/g,"interface do usuário"],
+ [/(\d)-Tier/g,"$1 tier"],
+ [/\bN-Tier/g,"N tier"],
+ [/\bPub\/Sub/g,"pub sub"],
+ [/\bCRUD\b/g,"crud"],
+ [/\*/g,""],
+ [/\s+/g," "]
+];
+function clean(t){ let s=t; for(const [r,v] of SUBS) s=s.replace(r,v); s=s.trim(); if(!/[.!?:]$/.test(s)) s+="."; return s; }
+
+/* =========================================================
+   ROTEIRO (array pedido: slideId, textoLegenda, audioUrl, duracao)
+   audioUrl: preencha com o MP3 do slide (ElevenLabs / Google Cloud TTS)
+   para tocar o arquivo no lugar da voz do navegador.
+   ========================================================= */
+const CPS = 14; // caracteres por segundo (estimativa a 1x)
+function segsFor(s){
+  if(s.tipo==="intro") return [
+   {alvo:"titulo", t:"Olá! Nesta vídeo-aula você vai revisar os capítulos sete, oito e nove de Engenharia de Software um, sobre arquitetura de software."},
+   {alvo:"c7", t:"Capítulo sete: introdução. A diferença entre análise e projeto, e o que são componentes e conectores."},
+   {alvo:"c8", t:"Capítulo oito: documentação de arquiteturas. O modelo quatro mais um, o diagrama de componentes e o diagrama de implantação."},
+   {alvo:"c9", t:"Capítulo nove: estilos arquiteturais. Camadas, MVC, MVP, EBI, cliente-servidor, N tier e as formas de comunicação entre máquinas."},
+   {alvo:"fmt", t:"Em cada slide você vê o conceito com uma analogia, os pontos para memorizar, o alerta de prova ligado à revisão, quando existir, e um macete. Aperte play e vamos lá!"}
+  ];
+  if(s.tipo==="gabarito"){
+   const a=[{alvo:"titulo", t:"Para fechar, o gabarito das questões da revisão ligadas a estes três capítulos."}];
+   GAB.forEach((g,i)=>a.push({alvo:"g"+i, t:clean(g.q+". "+g.r+". "+g.d)}));
+   a.push({alvo:"nota", t:"Os itens com asterisco são deduções a partir do material. Confirme com o professor. Bons estudos!"});
+   return a;
+  }
+  const a=[{alvo:"titulo", t:clean(s.cap+". "+s.titulo)},{alvo:"conceito", t:"Conceito central. "+clean(s.conceito)}];
+  s.pontos.forEach((p,i)=>a.push({alvo:"p"+i, t:(i===0?"Pontos para memorizar. ":"")+clean(p)}));
+  if(s.alerta) a.push({alvo:"alerta", t:"Alerta de prova. "+clean(s.alerta)});
+  a.push({alvo:"gatilho", t:"Macete. "+clean(s.gatilho)});
+  return a;
+}
+const AULA = SLIDES.map(s=>{
+  const segmentos=segsFor(s).map(g=>({...g, dur:Math.max(1.8,g.t.length/CPS)}));
+  return {slideId:s.id, textoLegenda:segmentos.map(g=>g.t).join(" "), audioUrl:"", duracao:Math.round(segmentos.reduce((x,g)=>x+g.dur,0)), segmentos};
+});
+
+/* =========================================================
+   RENDERIZAÇÃO
+   ========================================================= */
+const stage=document.getElementById("stage");
+function anim(n){return `class="anim" style="--n:${n}"`;}
+function renderSlide(s,i){
+  let h="";
+  if(s.tipo==="intro"){
+    h=`<div class="wrap hero">
+      <div class="head anim" style="--n:0"><span class="chip">Engenharia de Software I · Revisão P1</span></div>
+      <h1 data-k="titulo" class="anim" style="--n:1">Arquitetura de Software</h1>
+      <p class="sub anim" style="--n:2">Vídeo-aula interativa dos capítulos 7, 8 e 9, com narração e legendas.</p>
+      <div class="trio">
+        <div class="card anim" data-k="c7" style="--n:3"><div class="n">7</div><p><b>Introdução</b><br>Análise × projeto, componentes e conectores.</p></div>
+        <div class="card anim" data-k="c8" style="--n:4"><div class="n">8</div><p><b>Documentação</b><br>Modelo 4+1, componentes e implantação.</p></div>
+        <div class="card anim" data-k="c9" style="--n:5"><div class="n">9</div><p><b>Estilos arquiteturais</b><br>Camadas, MVC, MVP, EBI, cliente-servidor, N-Tier.</p></div>
+      </div>
+      <div class="card anim" data-k="fmt" style="--n:6"><h4>Em cada slide</h4><div class="how"><span>💡 Conceito &amp; analogia</span><span>🎯 Pontos de memorização</span><span>⚠️ Alerta de prova</span><span>🧠 Macete</span></div></div>
+      <button class="bigplay anim" style="--n:7" id="bigPlay">▶ Começar a aula</button>
+    </div>`;
+  } else if(s.tipo==="gabarito"){
+    h=`<div class="wrap">
+      <div class="head anim" style="--n:0"><span class="chip">Fechamento</span><h2 data-k="titulo">✅ Gabarito dos capítulos 7, 8 e 9</h2></div>
+      <div class="gab">${GAB.map((g,k)=>`<div class="card anim" data-k="g${k}" style="--n:${k+1}"><div class="q">${g.q}</div><div class="r">${g.r}</div><div class="d">${g.d}</div></div>`).join("")}
+      <div class="card anim" data-k="nota" style="--n:8"><div class="q">Atenção</div><div class="d">* Deduzido do material, sem gabarito oficial na revisão. A questão 19 é uma resposta sugerida. Confirme com o professor.</div></div></div>
+    </div>`;
+  } else {
+    h=`<div class="wrap">
+      <div class="head anim" style="--n:0"><span class="chip">${s.cap}</span><h2 data-k="titulo">📌 ${s.titulo}</h2></div>
+      <div class="grid">
+        <div class="col">
+          <div class="card conceito anim" data-k="conceito" style="--n:1"><h4>💡 Conceito central &amp; analogia</h4><p>${s.conceito}</p></div>
+          <div class="card gatilho anim" data-k="gatilho" style="--n:${s.alerta?4:3}"><h4>🧠 Gatilho mental</h4><p>${s.gatilho}</p></div>
+        </div>
+        <div class="col">
+          <div class="card pontos anim" style="--n:2"><h4>🎯 Pontos de memorização</h4><ul>${s.pontos.map((p,k)=>`<li data-k="p${k}">${p}</li>`).join("")}</ul></div>
+          ${s.alerta?`<div class="card alerta anim" data-k="alerta" style="--n:3"><h4>⚠️ Alerta de prova</h4><p>${s.alerta}</p></div>`:""}
+        </div>
+      </div>
+    </div>`;
+  }
+  const el=document.createElement("article");
+  el.className="slide"; el.id="slide-"+i; el.innerHTML=h;
+  stage.appendChild(el);
+}
+SLIDES.forEach(renderSlide);
+const slideEls=[...document.querySelectorAll(".slide")];
+const N=SLIDES.length;
+
+/* =========================================================
+   ESTADO E MOTOR DA AULA
+   ========================================================= */
+const S={cur:0, seg:-1, playing:false, speed:1, token:0, voice:null, wd:null, segT0:0, finished:false};
+const canSpeak=("speechSynthesis" in window) && ("SpeechSynthesisUtterance" in window);
+const audio=new Audio(); audio.preload="auto";
+const $=id=>document.getElementById(id);
+
+// timeline global
+const base=[]; let total=0;
+AULA.forEach(a=>{base.push(total); total+=a.segmentos.reduce((x,g)=>x+g.dur,0);});
+const fmt=t=>{t=Math.max(0,Math.round(t));return Math.floor(t/60)+":"+String(t%60).padStart(2,"0");};
+$("tTot").textContent="≈ "+fmt(total);
+$("ticks").innerHTML=base.slice(1).map(b=>`<i style="left:${b/total*100}%"></i>`).join("");
+
+function applyHighlight(){
+  const el=slideEls[S.cur], segs=AULA[S.cur].segmentos, idx={};
+  segs.forEach((g,i)=>{ if(!(g.alvo in idx)) idx[g.alvo]=i; });
+  el.querySelectorAll("[data-k]").forEach(n=>{
+    const k=n.dataset.k, i=idx[k]; let c;
+    if(k==="titulo") c = S.seg<=0 ? "active" : "read";
+    else if(S.seg<0) c = S.playing ? "unread" : "read";
+    else c = i<S.seg?"read": i===S.seg?"active":"unread";
+    n.classList.remove("read","active","unread"); n.classList.add(c);
+  });
+  const act=el.querySelector("li.active, .card.active");
+  if(act && act.scrollIntoView){ try{act.scrollIntoView({block:"nearest",behavior:"smooth"});}catch(e){} }
+}
+let capSpans=[];
+function showCaption(text){
+  const box=$("capText"); box.textContent=""; capSpans=[];
+  const re=/\S+/g; let m, last=0;
+  while((m=re.exec(text))){
+    const sp=document.createElement("span"); sp.className="w"; sp.textContent=m[0]; sp.dataset.s=m.index;
+    box.appendChild(sp); box.appendChild(document.createTextNode(" ")); capSpans.push(sp);
+  }
+}
+function markWords(ci){ capSpans.forEach(sp=>sp.classList.toggle("on", +sp.dataset.s<=ci)); }
+function finishCaption(){ capSpans.forEach(sp=>sp.classList.add("on")); }
+function setCounter(){ $("counter").textContent=(S.cur+1)+" / "+N; }
+function setPlayBtn(){ $("bPlay").textContent=S.playing?"❚❚ Pause":"▶ Play"; }
+
+function stopAll(){
+  S.token++; clearTimeout(S.wd);
+  if(canSpeak) try{speechSynthesis.cancel();}catch(e){}
+  audio.onended=audio.ontimeupdate=audio.onloadedmetadata=audio.onerror=null;
+  try{audio.pause();}catch(e){}
+}
+function goSlide(i,opts={}){
+  i=Math.max(0,Math.min(N-1,i));
+  stopAll();
+  slideEls.forEach((el,j)=>{ el.classList.toggle("active",j===i); el.classList.toggle("past",j<i); el.classList.remove("enter"); });
+  S.cur=i; S.seg=-1; S.finished=false;
+  const el=slideEls[i]; void el.offsetWidth; el.classList.add("enter"); el.scrollTop=0;
+  applyHighlight(); setCounter();
+  showCaption(S.playing||opts.keep ? AULA[i].segmentos[0].t : "Pressione Play para ouvir a explicação deste slide.");
+  if(!(S.playing||opts.keep)) finishCaption();
+}
+function segIndexAudio(frac){
+  const segs=AULA[S.cur].segmentos, tot=segs.reduce((x,g)=>x+g.t.length,0); let acc=0;
+  for(let i=0;i<segs.length;i++){ acc+=segs[i].t.length/tot; if(frac<acc) return i; }
+  return segs.length-1;
+}
+function playFrom(k){
+  stopAll(); const tok=S.token; S.playing=true; S.finished=false; setPlayBtn();
+  const a=AULA[S.cur];
+  setTimeout(()=>{
+    if(tok!==S.token) return;
+    if(a.audioUrl) playAudio(k,tok); else speakSeg(k,tok);
+  },80);
+}
+function playAudio(k,tok){
+  const segs=AULA[S.cur].segmentos, tot=segs.reduce((x,g)=>x+g.t.length,0);
+  audio.src=AULA[S.cur].audioUrl; audio.playbackRate=S.speed;
+  audio.onloadedmetadata=()=>{
+    let start=0; for(let i=0;i<k;i++) start+=segs[i].t.length/tot;
+    try{audio.currentTime=start*audio.duration;}catch(e){}
+    audio.play().catch(()=>{ AULA[S.cur].audioUrl=""; speakSeg(k,tok); });
+  };
+  audio.ontimeupdate=()=>{
+    if(tok!==S.token||!audio.duration) return;
+    const i=segIndexAudio(audio.currentTime/audio.duration);
+    if(i!==S.seg){ S.seg=i; S.segT0=performance.now(); applyHighlight(); showCaption(segs[i].t); finishCaption(); }
+  };
+  audio.onended=()=>endSlide(tok);
+  audio.onerror=()=>{ if(tok!==S.token) return; AULA[S.cur].audioUrl=""; speakSeg(k,tok); };
+  audio.load();
+}
+function speakSeg(k,tok){
+  if(tok!==S.token) return;
+  const segs=AULA[S.cur].segmentos;
+  if(k>=segs.length) return endSlide(tok);
+  S.seg=k; S.segT0=performance.now(); applyHighlight();
+  const text=segs[k].t; showCaption(text);
+  let done=false;
+  const next=()=>{ if(done||tok!==S.token) return; done=true; clearTimeout(S.wd); finishCaption(); speakSeg(k+1,tok); };
+  if(!canSpeak){ S.wd=setTimeout(next, segs[k].dur*1000/S.speed); return; }
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=S.voice?S.voice.lang:"pt-BR"; if(S.voice) u.voice=S.voice;
+  u.rate=S.speed; u.pitch=1; u.volume=1;
+  u.onend=next;
+  u.onerror=e=>{ if(tok!==S.token||done) return; if(e.error==="canceled"||e.error==="interrupted") return; clearTimeout(S.wd); S.wd=setTimeout(next, segs[k].dur*1000/S.speed); };
+  u.onboundary=e=>{ if(tok===S.token && (e.name==="word"||e.name===undefined)) markWords(e.charIndex); };
+  // proteção: alguns navegadores deixam de disparar "onend"
+  S.wd=setTimeout(()=>{ if(done||tok!==S.token) return; try{speechSynthesis.cancel();}catch(e){} next(); }, text.length*140/S.speed+5000);
+  try{speechSynthesis.speak(u);}catch(e){ S.wd=setTimeout(next, segs[k].dur*1000/S.speed); }
+}
+function endSlide(tok){
+  if(tok!==S.token) return;
+  if(S.cur<N-1){
+    goSlide(S.cur+1,{keep:true});
+    const t2=S.token; setTimeout(()=>{ if(S.playing && t2===S.token) playFrom(0); },700);
+  } else {
+    S.playing=false; S.finished=true; setPlayBtn(); finishCaption();
+  }
+}
+function pause(){ S.playing=false; stopAll(); setPlayBtn(); finishCaption(); }
+function play(){ if(S.finished){ goSlide(0); } playFrom(Math.max(S.seg,0)); }
+function toggle(){ S.playing?pause():play(); }
+function go(delta){
+  const was=S.playing; goSlide(S.cur+delta,{keep:was});
+  if(was) playFrom(0);
+}
+
+/* progresso */
+function posNow(){
+  const segs=AULA[S.cur].segmentos; let p=base[S.cur];
+  const k=Math.max(S.seg,0); for(let i=0;i<k;i++) p+=segs[i].dur;
+  if(S.playing && S.seg>=0){ const el=(performance.now()-S.segT0)/1000*S.speed; p+=Math.min(el,segs[S.seg].dur*0.98); }
+  if(S.finished) p=total;
+  return p;
+}
+function frame(){
+  const p=posNow(), f=Math.min(1,p/total);
+  $("fill").style.width=(f*100)+"%"; $("knob").style.left=(f*100)+"%";
+  $("tNow").textContent=fmt(p);
+  requestAnimationFrame(frame);
+}
+$("bar").addEventListener("click",e=>{
+  const r=$("bar").getBoundingClientRect(); const t=Math.max(0,Math.min(0.9999,(e.clientX-r.left)/r.width))*total;
+  let i=0; while(i<N-1 && base[i+1]<=t) i++;
+  const off=t-base[i], segs=AULA[i].segmentos; let acc=0,k=0;
+  for(;k<segs.length-1;k++){ if(off<acc+segs[k].dur) break; acc+=segs[k].dur; }
+  const was=S.playing; goSlide(i,{keep:true});
+  if(was) playFrom(k);
+  else { S.seg=k; applyHighlight(); showCaption(segs[k].t); finishCaption(); }
+});
+
+/* controles */
+$("bPlay").onclick=toggle; $("bNext").onclick=()=>go(1); $("bPrev").onclick=()=>go(-1);
+document.addEventListener("click",e=>{ if(e.target.id==="bigPlay") play(); });
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="SELECT"||e.target.tagName==="INPUT") return;
+  if(e.code==="Space"){e.preventDefault();toggle();}
+  else if(e.code==="ArrowRight") go(1);
+  else if(e.code==="ArrowLeft") go(-1);
+});
+$("speeds").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  S.speed=parseFloat(b.dataset.s);
+  [...$("speeds").children].forEach(x=>x.classList.toggle("on",x===b));
+  audio.playbackRate=S.speed;
+  if(S.playing && !AULA[S.cur].audioUrl) playFrom(Math.max(S.seg,0));
+});
+$("showAll").onchange=e=>document.body.classList.toggle("showall",e.target.checked);
+
+/* vozes */
+function score(v){
+  const n=(v.name+" "+v.voiceURI).toLowerCase(); let s=0;
+  if(/francisca/.test(n)&&/online|natural/.test(n)) s+=100;
+  else if(/antonio|antônio|thalita/.test(n)&&/online|natural/.test(n)) s+=95;
+  else if(/online|natural|neural/.test(n)) s+=85;
+  else if(/google/.test(n)) s+=70;
+  if(/^pt[-_]br/i.test(v.lang)) s+=10;
+  return s;
+}
+function loadVoices(){
+  if(!canSpeak){ $("voiceNote").className="warn"; $("voiceNote").textContent="Este navegador não tem síntese de voz. A aula roda só com legendas e temporizador. Use Edge ou Chrome para ouvir a narração."; $("voiceSel").style.display="none"; return; }
+  const all=speechSynthesis.getVoices(); if(!all.length) return;
+  const pt=all.filter(v=>/^pt/i.test(v.lang)).sort((a,b)=>score(b)-score(a));
+  const sel=$("voiceSel"); sel.innerHTML="";
+  if(!pt.length){
+    $("voiceNote").className="warn";
+    $("voiceNote").textContent="Nenhuma voz em português foi encontrada neste navegador. A leitura usará a voz padrão ou só as legendas. Para melhor resultado, abra no Microsoft Edge (voz Francisca Online) ou no Chrome (voz Google), ou preencha o audioUrl com MP3.";
+    sel.style.display="none"; S.voice=null; return;
+  }
+  sel.style.display="";
+  pt.forEach((v,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=v.name+(score(v)>=70?" ★":""); sel.appendChild(o); });
+  const keep=S.voice && pt.find(v=>v.voiceURI===S.voice.voiceURI);
+  S.voice=keep||pt[0]; sel.value=pt.indexOf(S.voice);
+  sel.onchange=()=>{ S.voice=pt[+sel.value]; noteVoice(); if(S.playing) playFrom(Math.max(S.seg,0)); };
+  noteVoice();
+}
+function noteVoice(){
+  const v=S.voice, nat=v&&score(v)>=70, n=$("voiceNote");
+  if(nat){ n.className="ok"; n.textContent="Voz natural em uso: "+v.name+". Você pode trocar a voz no seletor abaixo."; }
+  else { n.className="warn"; n.textContent="Só encontrei voz robótica ("+(v?v.name:"padrão")+"). Para voz natural, abra no Microsoft Edge (Francisca Online) ou no Chrome (Google português do Brasil), ou preencha o audioUrl de cada slide com um MP3 do ElevenLabs ou Google Cloud TTS."; }
+}
+if(canSpeak){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; setTimeout(loadVoices,600); setTimeout(loadVoices,1800); } else loadVoices();
+
+/* início */
+goSlide(0); setPlayBtn(); frame();
+window.__aula={S,AULA,goSlide,playFrom,pause};
+</script>
+<script src="bridge.js"></script>
+</body>
+</html>
