@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vídeo-aulas · Engenharia de Software I</title>
+<style>
+:root{--bg:#0b0f1c;--panel:#121829;--panel2:#18203a;--line:#26304f;--txt:#eef1fb;--mut:#98a4c6;--acc:#7aa7ff;--acc2:#a78bfa;--gold:#ffc857;--ok:#5be3a8}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+svg{width:24px;height:24px;fill:currentColor;display:block}
+
+/* ---------- barra superior minimalista ---------- */
+.topbar{height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;background:rgba(11,15,28,.92);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.01em;white-space:nowrap}
+.logo i{width:30px;height:22px;border-radius:7px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center}
+.logo i svg{width:14px;height:14px;fill:#0a1124}
+.crumb{color:var(--mut);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.crumb b{color:var(--txt);font-weight:700}
+.spacer{flex:1}
+.burger{display:none;width:40px;height:40px;border-radius:50%}
+.burger:hover{background:rgba(255,255,255,.08)}
+
+/* ---------- layout ---------- */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;height:calc(100vh - 56px);height:calc(100dvh - 56px);transition:grid-template-columns .3s ease}
+.layout.theater{grid-template-columns:minmax(0,1fr) 0px}
+.player{position:relative;background:#000;overflow:hidden;min-width:0;min-height:0}
+.frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0a0f1e;opacity:1;transition:opacity .35s ease}
+.player.loading .frame{opacity:0}
+.loader{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}
+.player.loading .loader{display:grid}
+.spin{width:44px;height:44px;border-radius:50%;border:3px solid rgba(255,255,255,.15);border-top-color:var(--acc);animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- camada de controles (aparece só ao tocar / passar o mouse) ---------- */
+.overlay{position:absolute;inset:0;pointer-events:none}
+.player:not(.gate):not(.nobridge):not(.loading) .overlay{pointer-events:auto}
+.player.gate .overlay>*,.player.loading .overlay>*{display:none}
+.surface{position:absolute;inset:0}
+.player.playing:not(.ui) .surface{cursor:none}
+.shade-top,.controls{position:absolute;left:0;right:0;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.shade-top{top:0;padding:14px 18px 40px;background:linear-gradient(rgba(0,0,0,.75),transparent);font-weight:700;font-size:clamp(14px,1.6vw,18px);text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.shade-top small{display:block;color:#c3cce6;font-weight:500;font-size:12px;margin-bottom:2px}
+.controls{bottom:0;padding:34px 12px 8px;background:linear-gradient(transparent,rgba(0,0,0,.88))}
+.player.ui .shade-top,.player.ui .controls{opacity:1;pointer-events:auto}
+.player.ui .shade-top{pointer-events:none}
+.bigplay{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:rgba(10,15,30,.72);backdrop-filter:blur(6px);display:grid;place-items:center;opacity:0;transform:scale(.9);transition:opacity .25s,transform .25s;pointer-events:none}
+.bigplay svg{width:36px;height:36px}
+.player.ui .bigplay{opacity:1;transform:none;pointer-events:auto}
+.player.ended .bigplay{display:none}
+
+.prog{height:20px;display:flex;align-items:center;cursor:pointer;touch-action:none;padding:0 4px}
+.track{position:relative;width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,.25);transition:height .15s}
+.prog:hover .track,.prog.drag .track{height:7px}
+.pfill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.knob{position:absolute;top:50%;left:0;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(122,167,255,.35);transform:scale(0);transition:transform .15s}
+.prog:hover .knob,.prog.drag .knob{transform:scale(1)}
+.row{display:flex;align-items:center;gap:2px}
+.ib{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;transition:background .15s}
+.ib:hover{background:rgba(255,255,255,.14)}
+.ib:disabled{opacity:.35;cursor:default}
+.ib.on{color:var(--gold)}
+.time{font-size:13px;color:#dfe5f7;font-variant-numeric:tabular-nums;margin-left:8px;white-space:nowrap}
+.pill{font-size:12px;font-weight:800;color:#fff;background:rgba(255,255,255,.14);border-radius:999px;padding:4px 9px;margin-left:6px}
+.player.nobridge .controls{opacity:1;pointer-events:auto;background:none;padding:0;left:auto;right:8px;top:8px;bottom:auto;width:auto}
+.player.nobridge .overlay{pointer-events:none}
+.player.nobridge .prog,.player.nobridge .hide-nb{display:none}
+.player.nobridge .row{background:rgba(10,15,30,.7);border-radius:999px;padding:2px}
+
+/* ---------- configurações ---------- */
+.settings{position:absolute;right:12px;bottom:76px;width:min(330px,calc(100% - 24px));max-height:calc(100% - 100px);overflow:auto;background:rgba(18,24,41,.97);border:1px solid var(--line);border-radius:16px;padding:14px;backdrop-filter:blur(12px);opacity:0;visibility:hidden;transform:translateY(8px) scale(.98);transform-origin:bottom right;transition:opacity .2s,transform .2s,visibility 0s .2s;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.settings.open{opacity:1;visibility:visible;transform:none;transition:opacity .2s,transform .2s}
+.settings h4{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:2px 0 8px;font-weight:800}
+.settings section+section{margin-top:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:8px 13px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font-weight:700;font-size:14px}
+.chip:hover{border-color:var(--acc)}
+.chip.sel{background:var(--acc);color:#0a1124;border-color:var(--acc)}
+.voices{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow:auto}
+.opt{display:flex;align-items:center;gap:8px;text-align:left;padding:9px 11px;border-radius:10px;font-size:14px}
+.opt:hover{background:var(--panel2)}
+.opt.sel{background:rgba(122,167,255,.16)}
+.opt .ck{width:16px;color:var(--acc);font-weight:800}
+.opt em{margin-left:auto;font-style:normal;font-size:11px;color:var(--ok);font-weight:700}
+.note{font-size:13px;color:var(--mut);line-height:1.45}
+.sw{display:flex;align-items:center;justify-content:space-between;width:100%;padding:6px 2px;font-size:14px}
+.sw span.t{width:40px;height:22px;border-radius:999px;background:#2b365a;position:relative;transition:background .2s}
+.sw span.t::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw[aria-checked=true] span.t{background:var(--acc)}
+.sw[aria-checked=true] span.t::after{transform:translateX(18px)}
+
+/* ---------- fim da aula ---------- */
+.endcard{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:rgba(6,9,20,.82);backdrop-filter:blur(8px);padding:20px;z-index:3}
+.player.ended .endcard{display:grid}
+.endcard h3{font-size:clamp(20px,3vw,30px);margin-bottom:6px}
+.endcard p{color:var(--mut);margin-bottom:18px}
+.endcard .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{padding:12px 22px;border-radius:999px;font-weight:800;background:var(--panel2);border:1px solid var(--line)}
+.btn:hover{border-color:var(--acc)}
+.btn.primary{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#0a1124;border:0}
+
+/* ---------- playlist ---------- */
+.side{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.side-h{padding:16px 16px 10px}
+.side-h h2{font-size:17px}
+.side-h p{font-size:13px;color:var(--mut);margin-top:2px}
+.list{flex:1;overflow:auto;padding:6px 10px 12px;display:flex;flex-direction:column;gap:8px}
+.card{display:flex;gap:12px;text-align:left;padding:8px;border-radius:14px;border:1px solid transparent;transition:background .2s,border-color .2s;width:100%}
+.card:hover{background:var(--panel2)}
+.card.act{background:rgba(122,167,255,.12);border-color:rgba(122,167,255,.5)}
+.thumb{position:relative;flex:0 0 118px;height:72px;border-radius:10px;background:linear-gradient(135deg,var(--c1),var(--c2));display:grid;place-items:center;overflow:hidden}
+.thumb b{font-size:30px;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.thumb small{position:absolute;left:6px;bottom:5px;font-size:10px;font-weight:800;letter-spacing:.06em;background:rgba(0,0,0,.45);border-radius:5px;padding:2px 6px}
+.thumb .bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(0,0,0,.35)}
+.thumb .bar i{display:block;height:100%;width:0;background:#fff}
+.meta{min-width:0;display:flex;flex-direction:column;gap:3px;justify-content:center}
+.meta strong{font-size:14px;line-height:1.25}
+.meta span{font-size:12px;color:var(--mut);line-height:1.3}
+.meta .st{font-size:11px;font-weight:800;color:var(--acc)}
+.meta .st.done{color:var(--ok)}
+.tips{padding:10px 16px 14px;font-size:12px;color:var(--mut);border-top:1px solid var(--line)}
+kbd{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:11px}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.toast{position:absolute;left:50%;top:14px;transform:translate(-50%,-20px);background:rgba(18,24,41,.95);border:1px solid var(--line);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:6;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- modo tela cheia "falso" (iOS) ---------- */
+body.pfs .player{position:fixed;inset:0;z-index:1000}
+body.fs .btn-list,body.pfs .btn-list{display:none}
+
+/* ---------- responsivo: menu retrátil no mobile / landscape do celular ---------- */
+@media (max-width:900px),(orientation:landscape) and (max-height:540px) and (pointer:coarse){
+  .layout,.layout.theater{grid-template-columns:1fr}
+  .side{position:fixed;top:0;left:0;bottom:0;width:min(88vw,350px);transform:translateX(-102%);transition:transform .3s ease;z-index:50;border-right:1px solid var(--line);box-shadow:20px 0 60px rgba(0,0,0,.5)}
+  .side.open{transform:none}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .btn-theater{display:none}
+}
+@media (max-width:900px){.burger{display:grid}.crumb{display:none}}
+@media (max-width:520px){.time{display:none}.ib{width:38px;height:38px}.pill{display:none}}
+/* Landscape no celular: esconde menus e expande o vídeo para 100vw x 100vh */
+@media (orientation:landscape) and (max-height:540px) and (pointer:coarse){
+  .topbar{display:none}
+  .layout{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh}
+  .controls{padding-top:22px}
+  .settings{bottom:62px;max-height:calc(100% - 78px)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="burger" id="burger" aria-label="Abrir lista de aulas"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></button>
+  <div class="logo"><i><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></i>Vídeo-aulas ES1</div>
+  <div class="crumb" id="crumb"></div>
+  <div class="spacer"></div>
+</header>
+
+<div class="layout" id="layout">
+  <main class="player loading gate" id="player">
+    <iframe class="frame" id="frame" title="Vídeo-aula" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+    <div class="loader"><div class="spin"></div></div>
+    <div class="overlay" id="overlay">
+      <div class="surface" id="surface"></div>
+      <div class="shade-top"><small id="vmod"></small><div id="vtitle"></div></div>
+      <button class="bigplay" id="bigplay" aria-label="Reproduzir ou pausar"></button>
+      <div class="controls" id="controls">
+        <div class="prog" id="prog"><div class="track"><div class="pfill" id="pfill"></div><div class="knob" id="pknob"></div></div></div>
+        <div class="row">
+          <button class="ib hide-nb" id="bPrev" aria-label="Aula anterior"></button>
+          <button class="ib hide-nb" id="bPlay" aria-label="Reproduzir ou pausar"></button>
+          <button class="ib hide-nb" id="bNext" aria-label="Próxima aula"></button>
+          <span class="time hide-nb" id="time">0:00 / 0:00</span>
+          <span class="spacer"></span>
+          <span class="pill hide-nb" id="ratePill">1x</span>
+          <button class="ib hide-nb" id="bSet" aria-label="Configurações" aria-haspopup="true"></button>
+          <button class="ib btn-list" id="bList" aria-label="Lista de aulas"></button>
+          <button class="ib btn-theater" id="bTheater" aria-label="Ocultar lista de aulas"></button>
+          <button class="ib" id="bFs" aria-label="Tela cheia"></button>
+        </div>
+      </div>
+      <div class="settings" id="settings" role="dialog" aria-label="Configurações">
+        <section><h4>Velocidade</h4><div class="chips" id="rates"></div></section>
+        <section><h4>Voz da narração</h4><div class="voices" id="voices"></div></section>
+        <section><button class="sw" id="swCC" role="switch" aria-checked="true"><span>Legendas</span><span class="t"></span></button></section>
+      </div>
+    </div>
+    <div class="endcard" id="endcard">
+      <div><h3>Aula concluída 🎉</h3><p id="endText"></p>
+        <div class="btns"><button class="btn" id="bAgain">↻ Reassistir</button><button class="btn primary" id="bNextEnd">Próxima aula ▶</button></div></div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <aside class="side" id="side" aria-label="Playlist">
+    <div class="side-h"><h2>Aulas do curso</h2><p id="sideSub"></p></div>
+    <div class="list" id="list"></div>
+    <div class="tips"><kbd>Espaço</kbd> play/pause · <kbd>F</kbd> tela cheia · <kbd>←</kbd><kbd>→</kbd> ±5% · <kbd>N</kbd>/<kbd>P</kbd> aulas</div>
+  </aside>
+</div>
+<div class="scrim" id="scrim"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   CONFIGURAÇÃO DAS AULAS — edite aqui para trocar/adicionar aulas.
+   src: caminho do HTML da aula (precisa incluir <script src="bridge.js">
+        para que o portal controle play/pausa/voz/velocidade).
+   ===================================================================== */
+const AULAS = [
+  { id:"aula1", modulo:"Módulo 1", titulo:"Fundamentos, Processo e Ciclos de Vida", tag:"Caps. 1 a 3",
+    resumo:"Mitos, Polya, Hooker, cascata, espiral e RUP.", src:"aulas/aula1.html", cores:["#4f7cff","#7c5cf0"] },
+  { id:"aula2", modulo:"Módulo 2", titulo:"Métodos Ágeis, Scrum, Kanban e Estórias", tag:"Caps. 4 a 6",
+    resumo:"Manifesto, XP, Scrum, Kanban, WIP e INVEST.", src:"aulas/aula2.html", cores:["#14b8a6","#4f7cff"] },
+  { id:"aula3", modulo:"Módulo 3", titulo:"Arquitetura: Documentação e Estilos", tag:"Caps. 7 a 9",
+    resumo:"4+1, componentes, camadas, MVC, MVP e N-Tier.", src:"aulas/aula3.html", cores:["#f59e0b","#ef4444"] },
+  { id:"aula4", modulo:"Módulo 4", titulo:"Estilos Arquiteturais, parte b", tag:"Cap. 10",
+    resumo:"Pub/Sub, microsserviços, hexagonal e Onion.", src:"aulas/aula4.html", cores:["#ec4899","#8b5cf6"] },
+  { id:"aula5", modulo:"Resolução", titulo:"Resolução das Questões (Gabarito Comentado)", tag:"Revisão P1",
+    resumo:"Processos e arquitetura, com o porquê de cada resposta.", src:"aulas/aula5.html", cores:["#22c55e","#0ea5e9"] }
+];
+const RATES = [1, 1.25, 1.5, 2];
+
+/* ---------- utilitários ---------- */
+const $ = (s) => document.querySelector(s);
+const IC = {
+  play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>',
+  next:'<svg viewBox="0 0 24 24"><path d="M6 6l9 6-9 6zm10 0h2v12h-2z"/></svg>',
+  prev:'<svg viewBox="0 0 24 24"><path d="M18 6l-9 6 9 6zM6 6h2v12H6z"/></svg>',
+  gear:'<svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 110-7.2 3.6 3.6 0 010 7.2z"/></svg>',
+  list:'<svg viewBox="0 0 24 24"><path d="M4 6h12v2H4zm0 5h12v2H4zm0 5h8v2H4zm14-5v6l5-3z"/></svg>',
+  theater:'<svg viewBox="0 0 24 24"><path d="M3 6h18v12H3zm2 2v8h14V8z"/></svg>',
+  fs:'<svg viewBox="0 0 24 24"><path d="M5 5h5v2H7v3H5zm9 0h5v5h-2V7h-3zM5 14h2v3h3v2H5zm12 0h2v5h-5v-2h3z"/></svg>',
+  fsx:'<svg viewBox="0 0 24 24"><path d="M8 5h2v5H5V8h3zm6 0h2v3h3v2h-5zM5 14h5v5H8v-3H5zm9 0h5v2h-3v3h-2z"/></svg>'
+};
+const fmt = (s) => { s = Math.max(0, Math.round(s)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
+  return (h ? h+":"+String(m).padStart(2,"0") : m)+":"+String(x).padStart(2,"0"); };
+
+let prefs = { rate:1, voice:"", cc:true, last:0, done:{}, prog:{} };
+try { Object.assign(prefs, JSON.parse(localStorage.getItem("es1-portal") || "{}")); } catch (e) {}
+const save = () => { try { localStorage.setItem("es1-portal", JSON.stringify(prefs)); } catch (e) {} };
+
+/* ---------- elementos ---------- */
+const player = $("#player"), frame = $("#frame"), layout = $("#layout"), side = $("#side"), scrim = $("#scrim");
+const settings = $("#settings");
+$("#bPrev").innerHTML = IC.prev; $("#bNext").innerHTML = IC.next; $("#bSet").innerHTML = IC.gear;
+$("#bList").innerHTML = IC.list; $("#bTheater").innerHTML = IC.theater; $("#bFs").innerHTML = IC.fs;
+
+/* ---------- estado do player ---------- */
+let idx = 0, S, nbTimer, uiTimer, hoverCtl = false, dragging = false, lastVoices = "", progSaved = 0;
+const blank = () => ({ bridged:false, playing:false, frac:0, dur:0, rate:1, voices:[], voice:"", gate:true, ended:false, applied:{ rate:false, voice:false, cc:false } });
+S = blank();
+const send = (cmd, value) => { try { frame.contentWindow.postMessage({ dst:"aula", cmd, value }, "*"); } catch (e) {} };
+
+/* ---------- playlist ---------- */
+function renderList() {
+  $("#sideSub").textContent = AULAS.length + " aulas · " + Object.keys(prefs.done).filter(k => prefs.done[k]).length + " concluídas";
+  $("#list").innerHTML = AULAS.map((a, i) => {
+    const done = prefs.done[a.id], p = Math.round((prefs.prog[a.id] || 0) * 100);
+    return `<button class="card ${i === idx ? "act" : ""}" data-i="${i}" aria-current="${i === idx}">
+      <div class="thumb" style="--c1:${a.cores[0]};--c2:${a.cores[1]}"><b>${i + 1}</b><small>${a.tag}</small><div class="bar"><i style="width:${done ? 100 : p}%"></i></div></div>
+      <div class="meta"><span class="st ${done ? "done" : ""}">${i === idx ? "▶ REPRODUZINDO" : done ? "✓ CONCLUÍDA" : a.modulo.toUpperCase()}</span>
+        <strong>${a.titulo}</strong><span>${a.resumo}</span></div></button>`;
+  }).join("");
+}
+$("#list").addEventListener("click", (e) => { const c = e.target.closest(".card"); if (c) { loadLesson(+c.dataset.i); closeDrawer(); } });
+
+function loadLesson(i) {
+  i = Math.max(0, Math.min(AULAS.length - 1, i));
+  idx = i; prefs.last = i; save();
+  const a = AULAS[i];
+  S = blank(); lastVoices = ""; clearTimeout(nbTimer);
+  player.className = "player loading gate"; closeSettings();
+  $("#vtitle").textContent = a.titulo; $("#vmod").textContent = a.modulo + " · " + a.tag;
+  $("#crumb").innerHTML = "<b>" + a.modulo + "</b> · " + a.titulo;
+  document.title = a.modulo + " · " + a.titulo + " — Vídeo-aulas ES1";
+  try { history.replaceState(null, "", "#aula-" + (i + 1)); } catch (e) {}
+  renderList(); render();
+  setTimeout(() => { frame.src = a.src + (a.src.includes("?") ? "&" : "?") + "t=" + Date.now(); }, 180);
+}
+frame.addEventListener("load", () => {
+  if (!frame.getAttribute("src")) return;
+  player.classList.remove("loading");
+  clearTimeout(nbTimer);
+  nbTimer = setTimeout(() => { if (!S.bridged) { player.classList.remove("gate"); player.classList.add("nobridge"); } }, 3500);
+});
+
+/* ---------- mensagens da aula ---------- */
+window.addEventListener("message", (e) => {
+  if (e.source !== frame.contentWindow) return;
+  const m = e.data; if (!m || !m.aula) return;
+  if (m.type === "nobridge") { return; }
+  if (m.type !== "state" && m.type !== "ready") return;
+  if (m.type === "ready") { S.bridged = true; player.classList.remove("nobridge"); return; }
+  const was = { playing:S.playing, ended:S.ended, gate:S.gate };
+  Object.assign(S, { bridged:true, playing:m.playing, frac:m.frac, dur:m.dur, rate:m.rate, voices:m.voices, voice:m.voice, gate:m.gate, ended:m.ended });
+  player.classList.remove("nobridge");
+  // aplica preferências salvas (velocidade, voz e legendas) na aula recém-carregada
+  if (!S.applied.rate) { S.applied.rate = true; if (prefs.rate !== m.rate) send("rate", prefs.rate); }
+  if (!S.applied.cc) { S.applied.cc = true; if (!prefs.cc) send("cc", false); }
+  if (!S.applied.voice && prefs.voice && m.voices.some(v => v.key === prefs.voice)) { S.applied.voice = true; if (m.voice !== prefs.voice) send("voice", prefs.voice); }
+  if (m.ended && !was.ended) { prefs.done[AULAS[idx].id] = true; prefs.prog[AULAS[idx].id] = 1; save(); renderList(); }
+  if (Math.abs(m.frac - progSaved) > 0.03 && !m.ended) { progSaved = m.frac; prefs.prog[AULAS[idx].id] = Math.max(prefs.prog[AULAS[idx].id] || 0, m.frac); save(); }
+  if (was.gate && !m.gate) { showUI(); hintRotate(); }
+  if (!was.playing && m.playing) showUI();
+  render();
+});
+
+/* ---------- render dos controles ---------- */
+function render() {
+  player.classList.toggle("gate", S.gate && !player.classList.contains("nobridge"));
+  player.classList.toggle("playing", S.playing);
+  player.classList.toggle("ended", S.ended);
+  const ic = S.playing ? IC.pause : IC.play;
+  $("#bPlay").innerHTML = ic; $("#bigplay").innerHTML = ic;
+  $("#bPrev").disabled = idx === 0; $("#bNext").disabled = idx === AULAS.length - 1;
+  if (!dragging) { const p = S.frac * 100; $("#pfill").style.width = p + "%"; $("#pknob").style.left = p + "%"; }
+  const r = S.rate || 1, f = dragging ? dragFrac : S.frac;
+  $("#time").textContent = fmt(f * S.dur / r) + " / " + fmt(S.dur / r);
+  $("#ratePill").textContent = (r === 1 ? "1" : String(r)) + "x";
+  $("#bSet").classList.toggle("on", settings.classList.contains("open"));
+  const next = AULAS[idx + 1];
+  $("#endText").textContent = AULAS[idx].titulo;
+  $("#bNextEnd").style.display = next ? "" : "none";
+  if (next) $("#bNextEnd").textContent = "Próxima: Aula " + (idx + 2) + " ▶";
+  renderSettings();
+}
+function renderSettings() {
+  $("#rates").innerHTML = RATES.map(r => `<button class="chip ${(S.rate || 1) === r ? "sel" : ""}" data-r="${r}">${r}x</button>`).join("");
+  const key = JSON.stringify([S.voices, S.voice]);
+  if (key !== lastVoices) {
+    lastVoices = key;
+    $("#voices").innerHTML = S.voices.length
+      ? S.voices.map(v => `<button class="opt ${v.key === S.voice ? "sel" : ""}" data-v="${v.key.replace(/"/g, "&quot;")}"><span class="ck">${v.key === S.voice ? "✓" : ""}</span>${v.key}${v.nat ? "<em>✨ natural</em>" : ""}</button>`).join("")
+      : '<p class="note">Nenhuma voz em português encontrada neste navegador. A aula segue só com legendas. Para voz natural, use o Microsoft Edge (Francisca Online) ou o Chrome (voz Google).</p>';
+  }
+  $("#swCC").setAttribute("aria-checked", String(prefs.cc));
+}
+$("#rates").addEventListener("click", (e) => { const b = e.target.closest("[data-r]"); if (!b) return; prefs.rate = +b.dataset.r; save(); send("rate", prefs.rate); S.rate = prefs.rate; render(); });
+$("#voices").addEventListener("click", (e) => { const b = e.target.closest("[data-v]"); if (!b) return; prefs.voice = b.dataset.v; save(); send("voice", prefs.voice); S.voice = prefs.voice; render(); toast("Voz: " + prefs.voice); });
+$("#swCC").addEventListener("click", () => { prefs.cc = !prefs.cc; save(); send("cc", prefs.cc); render(); });
+
+/* ---------- visibilidade dos controles ---------- */
+function showUI() {
+  player.classList.add("ui"); clearTimeout(uiTimer);
+  if (S.playing && !settings.classList.contains("open") && !hoverCtl) uiTimer = setTimeout(() => player.classList.remove("ui"), 2600);
+}
+function hideUI() { if (S.playing && !settings.classList.contains("open")) player.classList.remove("ui"); }
+const surface = $("#surface");
+surface.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") showUI(); });
+surface.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") { clearTimeout(uiTimer); uiTimer = setTimeout(hideUI, 700); } });
+surface.addEventListener("click", (e) => {
+  if (settings.classList.contains("open")) { closeSettings(); return; }
+  if (e.pointerType === "touch" || e.pointerType === "pen") {
+    if (player.classList.contains("ui")) { clearTimeout(uiTimer); player.classList.remove("ui"); if (!S.playing) showUI(); } else showUI();
+  } else { toggle(); showUI(); }
+});
+const ctl = $("#controls");
+ctl.addEventListener("pointerenter", () => { hoverCtl = true; clearTimeout(uiTimer); });
+ctl.addEventListener("pointerleave", () => { hoverCtl = false; showUI(); });
+ctl.addEventListener("pointerdown", () => showUI());
+
+/* ---------- ações ---------- */
+function toggle() { if (S.ended) { send("seek", 0); } send("toggle"); }
+$("#bPlay").onclick = toggle; $("#bigplay").onclick = () => { toggle(); showUI(); };
+$("#bPrev").onclick = () => loadLesson(idx - 1); $("#bNext").onclick = () => loadLesson(idx + 1);
+$("#bNextEnd").onclick = () => loadLesson(idx + 1); $("#bAgain").onclick = () => loadLesson(idx);
+function openSettings() { settings.classList.add("open"); clearTimeout(uiTimer); player.classList.add("ui"); render(); }
+function closeSettings() { settings.classList.remove("open"); render(); showUI(); }
+$("#bSet").onclick = () => settings.classList.contains("open") ? closeSettings() : openSettings();
+
+/* barra de progresso com arrastar */
+const prog = $("#prog"); let dragFrac = 0;
+const fracAt = (x) => { const r = prog.getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)); };
+prog.addEventListener("pointerdown", (e) => { dragging = true; prog.classList.add("drag"); prog.setPointerCapture(e.pointerId); dragFrac = fracAt(e.clientX); preview(); });
+prog.addEventListener("pointermove", (e) => { if (dragging) { dragFrac = fracAt(e.clientX); preview(); } });
+prog.addEventListener("pointerup", (e) => { if (!dragging) return; dragging = false; prog.classList.remove("drag"); send("seek", fracAt(e.clientX)); S.frac = dragFrac; render(); });
+function preview() { $("#pfill").style.width = dragFrac * 100 + "%"; $("#pknob").style.left = dragFrac * 100 + "%"; render(); }
+
+/* tela cheia (com alternativa para iOS) */
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+function toggleFS() {
+  if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+  if (document.body.classList.contains("pfs")) { document.body.classList.remove("pfs"); syncFS(); return; }
+  const go = player.requestFullscreen || player.webkitRequestFullscreen;
+  if (go) { const p = go.call(player); if (p && p.catch) p.catch(() => { document.body.classList.add("pfs"); syncFS(); }); }
+  else { document.body.classList.add("pfs"); syncFS(); }
+}
+function syncFS() { const on = !!fsEl() || document.body.classList.contains("pfs"); document.body.classList.toggle("fs", !!fsEl()); $("#bFs").innerHTML = on ? IC.fsx : IC.fs; }
+document.addEventListener("fullscreenchange", syncFS); document.addEventListener("webkitfullscreenchange", syncFS);
+$("#bFs").onclick = toggleFS;
+
+/* modo teatro (esconde a lista no desktop) e menu retrátil (mobile) */
+$("#bTheater").onclick = () => { layout.classList.toggle("theater"); };
+const openDrawer = () => { side.classList.add("open"); scrim.classList.add("show"); };
+function closeDrawer() { side.classList.remove("open"); scrim.classList.remove("show"); }
+$("#burger").onclick = openDrawer; $("#bList").onclick = openDrawer; scrim.onclick = closeDrawer;
+
+/* teclado */
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === "Escape") { if (settings.classList.contains("open")) closeSettings(); else closeDrawer(); return; }
+  const onBtn = e.target.closest && e.target.closest("button");
+  if ((e.code === "Space" || e.key === "Enter") && onBtn) return;
+  if (S.gate) return;
+  const k = e.key.toLowerCase();
+  if (e.code === "Space" || k === "k") { e.preventDefault(); toggle(); showUI(); }
+  else if (k === "f") toggleFS();
+  else if (e.key === "ArrowRight") { send("seek", Math.min(.999, S.frac + .05)); showUI(); }
+  else if (e.key === "ArrowLeft") { send("seek", Math.max(0, S.frac - .05)); showUI(); }
+  else if (k === "n") loadLesson(idx + 1);
+  else if (k === "p") loadLesson(idx - 1);
+});
+
+/* ---------- avisos ---------- */
+let toastT;
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), 2600); }
+let hinted = false;
+function hintRotate() {
+  if (hinted) return; hinted = true;
+  if (matchMedia("(pointer:coarse)").matches && matchMedia("(orientation:portrait)").matches) toast("Dica: gire o celular para ver a aula em tela cheia");
+}
+/* ao girar o celular para a horizontal, a interface já se expande (CSS); tentamos também a tela cheia real */
+const lm = matchMedia("(orientation:landscape) and (max-height:540px) and (pointer:coarse)");
+(lm.addEventListener ? lm.addEventListener.bind(lm, "change") : lm.addListener.bind(lm))((e) => {
+  if (e.matches) { closeDrawer(); if (!fsEl() && player.requestFullscreen) player.requestFullscreen().then(syncFS).catch(() => {}); }
+  else if (fsEl() && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+});
+
+/* ---------- início ---------- */
+(function init() {
+  const h = /#aula-(\d+)/.exec(location.hash);
+  const i = h ? +h[1] - 1 : (prefs.last || 0);
+  loadLesson(i >= 0 && i < AULAS.length ? i : 0);
+  syncFS();
+})();
+</script>
+</body>
+</html>
